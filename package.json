@@ -1,0 +1,37 @@
+{
+  "name": "vetinfo-backend",
+  "version": "1.0.0",
+  "description": "API do VetInfo, prontuário clínico digital para veterinários autônomos",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typeCheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "Lucas da Cunha Fabri <dev.cunhaww@gmail.com>",
+  "license": "UNLICENSED",
+  "private": true,
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.24.0",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@11.24.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.4.0",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
