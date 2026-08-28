@@ -1,0 +1,49 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    // Environment Settings
+    // See also https://aka.ms/tsconfig/module
+    "module": "nodenext",
+    "target": "es2024",
+    "types": ["node"],
+    // For nodejs:
+    "lib": ["ES2024"],
+    "moduleResolution": "nodenext",
+    // "types": ["node"],
+    // and npm install -D @types/node
+
+    "rootDir": "src",
+    "outDir": "dist",
+
+    // Other Outputs
+    "sourceMap": true,
+    // "declaration": true,
+    // "declarationMap": true,
+
+    // Stricter Typechecking Options
+    "noUncheckedIndexedAccess": true, // faz array ter tipo T | undefined
+    "exactOptionalPropertyTypes": true,
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Style Options
+    // "noImplicitReturns": true,
+    // "noImplicitOverride": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noFallthroughCasesInSwitch": true,
+    // "noPropertyAccessFromIndexSignature": true,
+
+    // Recommended Options
+    "strict": true,
+    "rewriteRelativeImportExtensions": true, // é o que vai permitir o .ts nos imports
+    "verbatimModuleSyntax": true, // Obriga import type qundo o import é só de tipo, isso evita que o TS apague um import que tinha efeito colateral
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
