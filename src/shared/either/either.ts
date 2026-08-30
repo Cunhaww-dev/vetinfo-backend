@@ -31,4 +31,4 @@ export const left = <L, R>(value: L): Either<L, R> => new Left(value);
 export const right = <L, R>(value: R): Either<L, R> => new Right(value);
 
 // O Either precisa de dois parâmetros porque ele substitui o try/catch. O parâmetro L (Left) guarda e indica o erro, enquanto o R (Right) indica o sucesso
-// Postriormente podemos psssar isso para nossos controllers sem expor Http, então o domínio não conhece regra de negócio, ele só sabe que deu certo ou errado, e o controller é quem vai decidir o que fazer com isso, se vai retornar 200 ou 400, por exemplo. 
+// Posteriormente podemos passar isso para nossos controllers sem expor Http, então o domínio não conhece HTTP, e o controller é quem vai decidir o que fazer com isso, se vai retornar 200 ou 400, por exemplo. 
