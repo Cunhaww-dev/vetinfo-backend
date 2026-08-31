@@ -54,8 +54,8 @@ docker compose down                 # derruba o container, o volume nomeado pres
 
 ## Endpoints
 
-| Método | Rota        | O que faz                                            |
-| ------ | ----------- | ---------------------------------------------------- |
+| Método | Rota        | O que faz                                             |
+| ------ | ----------- | ----------------------------------------------------- |
 | GET    | `/health`   | Verificação de saúde                                  |
 | POST   | `/users`    | Cadastro de veterinário (`professional` ou `student`) |
 | POST   | `/sessions` | Login, devolve o JWT                                  |
@@ -85,5 +85,3 @@ Separando app.ts e server.ts pois quando tivermos testes E2E com vitest o teste 
 **Zod fica na borda e em nenhum lugar além dela.** A validação de formato vive em `user.schema.ts`, na raiz do módulo, aplicada por um middleware genérico em `shared/http/` que qualquer módulo novo reusa passando o próprio schema. Nenhum arquivo de `domain/` ou `application/` importa Zod, e os tipos `z.infer<...>` foram deliberadamente não exportados: se um use case tipasse sua entrada com `z.infer`, a biblioteca de validação teria vazado para a camada de aplicação por via de tipo, sem ninguém perceber no diff. Os tipos de entrada dos use cases são escritos à mão porque são o contrato da aplicação, não subproduto da ferramenta.
 
 **O CLI do Prisma está pinado em `7.10.0` e não deve ser atualizado com `@latest`.** Na época da instalação a tag `latest` do CLI apontava para um release candidate do 8 enquanto o `@prisma/client` apontava para o 7 estável, o que deixa os dois em majors diferentes e faz flags do CLI sumirem sem aviso. Vale ignorar o banner de update que aparece no terminal até o 8 sair de RC.
-
-**O código e o banco são escritos em inglês, a documentação do projeto em português.** Os nomes de coluna seguem `snake_case` e os campos da aplicação `camelCase`, com a tradução feita no repositório Prisma. É por isso que a coluna `hashed_pass` vira `passwordHash` na entidade: se o domínio usasse o nome da coluna, o schema do banco estaria mandando no domínio e a seta da dependência apontaria para o lado errado.
