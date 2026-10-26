@@ -2,8 +2,8 @@ import { type Either, left, right } from '../../../shared/either/either.ts';
 import type { DomainError } from '../../../shared/errors/domain-error.ts';
 import { InvalidCredentials } from '../domain/errors/invalid-credentials.ts';
 import type { HashProvider } from '../domain/hash-provider.ts';
-import type { User } from '../domain/user.entity.ts';
-import type { UserRepository } from '../domain/user.repository.ts';
+import type { User } from '../domain/user-entity.ts';
+import type { UserRepository } from '../domain/user-repository.ts';
 
 type AuthenticateUserInput = {
   email: string;

@@ -1,0 +1,5 @@
+import type { User } from './user-entity.ts';
+
+export interface UserRepository {
+  findByEmail(email: string): Promise<User | null>;
+}
