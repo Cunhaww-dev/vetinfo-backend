@@ -25,7 +25,7 @@ Antes de seguir, **preencha o `.env`**. Os campos `POSTGRES_USER`, `POSTGRES_PAS
 ```bash
 # 5. Sobe o Postgres (espere ficar healthy, leva uns segundos)
 docker compose up -d
-docker compose ps
+docker ps
 
 # 6. Cria as tabelas e gera o Prisma Client
 pnpm exec prisma migrate dev
