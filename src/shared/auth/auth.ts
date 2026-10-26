@@ -10,10 +10,10 @@ export const auth = betterAuth({
 
   user: {
     additionalFields: {
-      // Ensinando pra lib as nossas colunas. input: false imoede o cliente de mandar esse campo no cadastro, o server que preenche
+      // Ensinando pra lib as nossas colunas.
       type: { type: ['professional', 'student'], required: true },
       crmv: { type: 'string', required: false },
-      crmvActivatedAt: { type: 'date', required: false, input: false },
+      crmvActivatedAt: { type: 'date', required: false },
     },
   },
 
