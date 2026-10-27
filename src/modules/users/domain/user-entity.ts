@@ -9,7 +9,6 @@ export type UserType = 'professional' | 'student';
 type CreateUserInput = {
   name: string;
   email: string;
-  passwordHash: string;
   type: UserType;
   crmv?: string | null;
 };
@@ -18,7 +17,6 @@ type RestoreUserProps = {
   id: string;
   name: string;
   email: string;
-  passwordHash: string;
   type: UserType;
   crmv: string | null;
   createdAt: Date;
@@ -32,7 +30,6 @@ export class User {
     readonly id: string,
     readonly name: string,
     readonly email: string,
-    readonly passwordHash: string,
     readonly type: UserType,
     readonly crmv: string | null,
     readonly createdAt: Date,
@@ -55,7 +52,6 @@ export class User {
         randomUUID(),
         input.name,
         input.email.trim().toLowerCase(),
-        input.passwordHash,
         input.type,
         input.type === 'professional' ? crmv : null,
         now,
@@ -69,7 +65,6 @@ export class User {
       props.id,
       props.name,
       props.email,
-      props.passwordHash,
       props.type,
       props.crmv,
       props.createdAt,

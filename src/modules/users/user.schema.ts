@@ -11,8 +11,3 @@ export const registerUserSchema = z.object({
   type: z.enum(['professional', 'student']),
   crmv: z.string().trim().nullish(),
 });
-
-export const authenticateUserSchema = z.object({
-  email: z.email('Invalid email format'),
-  password: z.string().min(1, 'Password is required'),
-});

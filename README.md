@@ -22,10 +22,16 @@ cp .env.example .env
 
 Antes de seguir, **preencha o `.env`**. Os campos `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` são lidos pelo Docker Compose ao criar o banco, e a `DATABASE_URL` é lida pela aplicação e pelo Prisma. Os dois precisam concordar: se o usuário do compose for `vetinfo` e a `DATABASE_URL` disser `postgres`, o container sobe normalmente e a aplicação não conecta. A porta na `DATABASE_URL` é a **5433**, e o motivo está explicado nas decisões abaixo.
 
+O `BETTER_AUTH_SECRET` assina as sessões e não pode ficar vazio. Gere um valor com o comando abaixo e cole no `.env`. O `BETTER_AUTH_URL` já vem certo para rodar local.
+
+```bash
+openssl rand -base64 32
+```
+
 ```bash
 # 5. Sobe o Postgres (espere ficar healthy, leva uns segundos)
 docker compose up -d
-docker compose ps
+docker ps
 
 # 6. Cria as tabelas e gera o Prisma Client
 pnpm exec prisma migrate dev
@@ -54,11 +60,15 @@ docker compose down                 # derruba o container, o volume nomeado pres
 
 ## Endpoints
 
-| Método | Rota        | O que faz                                             |
-| ------ | ----------- | ----------------------------------------------------- |
-| GET    | `/health`   | Verificação de saúde                                  |
-| POST   | `/users`    | Cadastro de veterinário (`professional` ou `student`) |
-| POST   | `/sessions` | Login, devolve o JWT                                  |
+| Método | Rota                      | O que faz                                             |
+| ------ | ------------------------- | ----------------------------------------------------- |
+| GET    | `/health`                 | Verificação de saúde                                  |
+| POST   | `/users`                  | Cadastro de veterinário (`professional` ou `student`) |
+| POST   | `/api/auth/sign-in/email` | Login, cria a sessão e devolve o token                |
+| GET    | `/api/auth/get-session`   | Devolve a sessão e o usuário logado                   |
+| POST   | `/api/auth/sign-out`      | Encerra a sessão                                      |
+
+As rotas `/api/auth/*` são do better-auth. O cadastro **só** acontece por `POST /users`: a rota `POST /api/auth/sign-up/email` do better-auth responde 404, e o motivo está nas decisões abaixo.
 
 ## Decisões tomadas durante o desenvolvimento
 
@@ -76,11 +86,17 @@ Separando app.ts e server.ts pois quando tivermos testes E2E com vitest o teste 
 
 **A regra do CRMV mora na entidade, não no schema de validação.** Dava para resolver "profissional exige CRMV" com um `.refine()` do Zod e teria funcionado para as requisições HTTP. Mas um seed, uma importação de planilha ou um script de migração passariam por cima e criariam profissional sem CRMV direto no banco. A entidade é o único lugar por onde todo mundo passa. Isso aparece na resposta da API: **400 vem da validação de borda, 422 vem da invariante de domínio.**
 
-**O id é gerado pela entidade, com `crypto.randomUUID()`.** Vale registrar porque a intuição engana: o `@default(uuid())` do Prisma não é um default do Postgres, a migration sai sem `DEFAULT` nenhum e o UUID é gerado em JavaScript pelo próprio Prisma na hora do insert. Então a escolha nunca foi entre banco e aplicação, era entre infra e domínio. Com a entidade gerando, ela nasce completa antes de tocar no banco e pode ser testada sem subir container.
+**A autenticação é do better-auth, e não mais bcrypt com JWT escrito à mão.** A primeira versão do cadastro e do login foi escrita à mão, com `bcryptjs` e `jsonwebtoken`. A troca veio cedo de propósito: hoje só o módulo de usuários depende do auth, e cada módulo novo (pacientes, atendimentos, compartilhamentos) deixaria a troca mais cara. Sessão, refresh, recuperação de senha e verificação de email passam a vir prontos, em vez de virar código de segurança mantido na mão.
 
-**O hash da senha acontece no use case e o JWT é assinado no controller.** Se a entidade chamasse o bcrypt, o domínio importaria uma biblioteca de infraestrutura, e como hash é lento de propósito o `create()` teria que virar assíncrono, ou seja, uma invariante de domínio precisando de `await`. O token seguiu o mesmo raciocínio invertido: ele é detalhe de transporte, um CLI chamando o mesmo "autenticar" não quer token nenhum, quer saber se as credenciais batem. O use case responde "são válidas, e este é o usuário", e o controller decide o que fazer com isso.
+**O better-auth fica só na camada `infra/`.** O domínio declara a porta `AuthProvider` com um `signUp()`, e o `BetterAuthProvider` é o único arquivo do módulo que importa a lib. O `RegisterUser` continua o mesmo de antes: valida o email, chama `User.create()` e só então chama `signUp()`. A ligação entre porta e adaptador acontece em `user.routes.ts`, então trocar o better-auth por outra coisa é mudar uma linha ali.
 
-**Login com email inexistente e login com senha errada devolvem exatamente a mesma resposta.** Mesmo status, mesmo código, mesma mensagem. Diferenciar os dois entregaria de graça a lista de quem tem conta no sistema para qualquer um disposto a testar emails, e num produto que guarda dado clínico isso é problema sério.
+**A rota de cadastro do better-auth é fechada para HTTP.** O `POST /api/auth/sign-up/email` grava o usuário sem passar pela entidade, ou seja, um `professional` conseguiria se cadastrar sem CRMV. Um hook `before` no `auth.ts` devolve 404 quando a chamada vem por HTTP, e deixa passar quando vem do nosso código pelo `auth.api.signUpEmail()`. A diferença entre os dois é o `ctx.request`, que só existe na chamada HTTP. A opção `disableSignUp` não serve aqui porque bloqueia as duas.
+
+**O id do usuário é gerado pelo better-auth, não pela entidade.** O `create()` da entidade ainda gera um UUID, mas o cadastro do better-auth gera o próprio id e não aceita um de fora. Por isso o `signUp()` devolve o usuário como o banco gravou, montado com `restore()`, e é esse id que a API devolve. Vale registrar porque a intuição engana: o `@default(uuid())` do Prisma também não é um default do Postgres, o UUID é gerado em JavaScript na hora do insert.
+
+**O `crmvActivatedAt` não usa `input: false`.** Essa opção do better-auth bloqueia o campo em qualquer chamada, até nas do próprio servidor, e quem calcula a data é a entidade. Sem ela, o campo ficaria aberto na rota pública de cadastro, e é mais um motivo para essa rota estar fechada.
+
+**Login com email inexistente e login com senha errada devolvem exatamente a mesma resposta.** O better-auth já faz isso: mesmo status, mesmo código, mesma mensagem. Diferenciar os dois entregaria de graça a lista de quem tem conta no sistema para qualquer um disposto a testar emails, e num produto que guarda dado clínico isso é problema sério.
 
 **Zod fica na borda e em nenhum lugar além dela.** A validação de formato vive em `user.schema.ts`, na raiz do módulo, aplicada por um middleware genérico em `shared/http/` que qualquer módulo novo reusa passando o próprio schema. Nenhum arquivo de `domain/` ou `application/` importa Zod, e os tipos `z.infer<...>` foram deliberadamente não exportados: se um use case tipasse sua entrada com `z.infer`, a biblioteca de validação teria vazado para a camada de aplicação por via de tipo, sem ninguém perceber no diff. Os tipos de entrada dos use cases são escritos à mão porque são o contrato da aplicação, não subproduto da ferramenta.
 
