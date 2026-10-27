@@ -3,7 +3,7 @@ import { User } from '../domain/user-entity.ts';
 import type { UserRepository } from '../domain/user-repository.ts';
 
 export class PrismaUserRepository implements UserRepository {
-  constructor(private readonly prisma: PrismaClient) {} // ID feita na mão, passando o prisma como parâmetro no construtor
+  constructor(private readonly prisma: PrismaClient) {} // DI feita na mão, passando o prisma como parâmetro no construtor
 
   async findByEmail(email: string): Promise<User | null> {
     const row = await this.prisma.user.findUnique({ where: { email } });
