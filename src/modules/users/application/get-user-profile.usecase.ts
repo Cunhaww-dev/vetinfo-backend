@@ -11,7 +11,9 @@ type GetUserProfileInput = {
 export class GetUserProfile {
   constructor(private readonly users: UserRepository) {}
 
-  async execute(input: GetUserProfileInput): Promise<Either<DomainError, User>> {
+  async execute(
+    input: GetUserProfileInput,
+  ): Promise<Either<DomainError, User>> {
     const user = await this.users.findById(input.userId);
     if (!user) return left(new UserNotFound(input.userId));
 
