@@ -7,7 +7,9 @@
     "dev": "tsx watch --env-file=.env src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "typeCheck": "tsc --noEmit"
+    "typeCheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "Lucas da Cunha Fabri <dev.cunhaww@gmail.com>",
@@ -29,6 +31,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^26.4.0",
     "dotenv": "^17.4.2",
+    "prettier": "3.9.10",
     "prisma": "7.10.0",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"

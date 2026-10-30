@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { type Either, left, right } from '../../../shared/either/either.ts';
 import type { DomainError } from '../../../shared/errors/domain-error.ts';
 import { CrmvRequiredForProfessional } from './errors/crmv-required-for-professional.ts';
+import { CrmvAlreadyActivated } from './errors/crmv-already-activated.ts';
 import { InvalidCrmvFormat } from './errors/invalid-crmv-format.ts';
 
 export type UserType = 'professional' | 'student';
@@ -60,8 +61,28 @@ export class User {
     );
   }
 
+  activateCrmv(crmv: string): Either<DomainError, User> {
+    if (this.type === 'professional') return left(new CrmvAlreadyActivated());
+
+    const normalized = crmv.trim().toUpperCase();
+    if (!CRMV_FORMAT.test(normalized))
+      return left(new InvalidCrmvFormat(normalized));
+
+    return right(
+      new User(
+        this.id,
+        this.name,
+        this.email,
+        'professional',
+        normalized,
+        this.createdAt,
+        new Date(),
+      ),
+    );
+  }
+
   static restore(props: RestoreUserProps): User {
-   return new User(
+    return new User(
       props.id,
       props.name,
       props.email,
