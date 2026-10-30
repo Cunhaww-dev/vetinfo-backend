@@ -1,5 +1,5 @@
-import type { User } from './user-entity.ts';
+import type { User } from './user-entity.ts'
 
 export interface AuthProvider {
-  signUp(user: User, password: string): Promise<User>;
+  signUp(user: User, password: string): Promise<User>
 }

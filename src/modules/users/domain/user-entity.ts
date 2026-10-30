@@ -1,30 +1,30 @@
-import { randomUUID } from 'node:crypto';
-import { type Either, left, right } from '../../../shared/either/either.ts';
-import type { DomainError } from '../../../shared/errors/domain-error.ts';
-import { CrmvRequiredForProfessional } from './errors/crmv-required-for-professional.ts';
-import { CrmvAlreadyActivated } from './errors/crmv-already-activated.ts';
-import { InvalidCrmvFormat } from './errors/invalid-crmv-format.ts';
+import { randomUUID } from 'node:crypto'
+import { type Either, left, right } from '../../../shared/either/either.ts'
+import type { DomainError } from '../../../shared/errors/domain-error.ts'
+import { CrmvRequiredForProfessional } from './errors/crmv-required-for-professional.ts'
+import { CrmvAlreadyActivated } from './errors/crmv-already-activated.ts'
+import { InvalidCrmvFormat } from './errors/invalid-crmv-format.ts'
 
-export type UserType = 'professional' | 'student';
+export type UserType = 'professional' | 'student'
 
 type CreateUserInput = {
-  name: string;
-  email: string;
-  type: UserType;
-  crmv?: string | null;
-};
+  name: string
+  email: string
+  type: UserType
+  crmv?: string | null
+}
 
 type RestoreUserProps = {
-  id: string;
-  name: string;
-  email: string;
-  type: UserType;
-  crmv: string | null;
-  createdAt: Date;
-  crmvActivatedAt: Date | null;
-};
+  id: string
+  name: string
+  email: string
+  type: UserType
+  crmv: string | null
+  createdAt: Date
+  crmvActivatedAt: Date | null
+}
 
-const CRMV_FORMAT = /^[A-Z]{2}\d+$/;
+const CRMV_FORMAT = /^[A-Z]{2}\d+$/
 
 export class User {
   private constructor(
@@ -39,14 +39,14 @@ export class User {
 
   // O create é pra criar um usuário. E o restore pega esse usuário do banco monta o JSON em domínio e utiliza na aplicação. Eles são statics pq o constructor é private, assim só quem esta dentro da classe consegue chamar o new User.
   static create(input: CreateUserInput): Either<DomainError, User> {
-    const crmv = input.crmv?.trim().toUpperCase() ?? null;
+    const crmv = input.crmv?.trim().toUpperCase() ?? null
 
     if (input.type === 'professional') {
-      if (!crmv) return left(new CrmvRequiredForProfessional());
-      if (!CRMV_FORMAT.test(crmv)) return left(new InvalidCrmvFormat(crmv));
+      if (!crmv) return left(new CrmvRequiredForProfessional())
+      if (!CRMV_FORMAT.test(crmv)) return left(new InvalidCrmvFormat(crmv))
     }
 
-    const now = new Date();
+    const now = new Date()
 
     return right(
       new User(
@@ -58,15 +58,15 @@ export class User {
         now,
         input.type === 'professional' ? now : null,
       ),
-    );
+    )
   }
 
   activateCrmv(crmv: string): Either<DomainError, User> {
-    if (this.type === 'professional') return left(new CrmvAlreadyActivated());
+    if (this.type === 'professional') return left(new CrmvAlreadyActivated())
 
-    const normalized = crmv.trim().toUpperCase();
+    const normalized = crmv.trim().toUpperCase()
     if (!CRMV_FORMAT.test(normalized))
-      return left(new InvalidCrmvFormat(normalized));
+      return left(new InvalidCrmvFormat(normalized))
 
     return right(
       new User(
@@ -78,7 +78,7 @@ export class User {
         this.createdAt,
         new Date(),
       ),
-    );
+    )
   }
 
   static restore(props: RestoreUserProps): User {
@@ -90,6 +90,6 @@ export class User {
       props.crmv,
       props.createdAt,
       props.crmvActivatedAt,
-    );
+    )
   }
 }

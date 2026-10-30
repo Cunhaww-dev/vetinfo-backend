@@ -1,6 +1,6 @@
-import { auth } from '../../../shared/auth/auth.ts';
-import type { AuthProvider } from '../domain/auth-provider.ts';
-import { User } from '../domain/user-entity.ts';
+import { auth } from '../../../shared/auth/auth.ts'
+import type { AuthProvider } from '../domain/auth-provider.ts'
+import { User } from '../domain/user-entity.ts'
 
 export class BetterAuthProvider implements AuthProvider {
   // A classe BetterAuthProvider promete cumprir com o que tem em AuthProvider, caso tenha outra assinatura o TS mostra um erro
@@ -14,7 +14,7 @@ export class BetterAuthProvider implements AuthProvider {
         crmv: user.crmv,
         crmvActivatedAt: user.crmvActivatedAt,
       },
-    });
+    })
 
     return User.restore({
       id: created.id,
@@ -24,7 +24,7 @@ export class BetterAuthProvider implements AuthProvider {
       crmv: created.crmv ?? null,
       createdAt: created.createdAt,
       crmvActivatedAt: created.crmvActivatedAt ?? null,
-    });
+    })
   }
 }
 
