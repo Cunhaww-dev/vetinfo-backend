@@ -18,6 +18,17 @@ export class PrismaUserRepository implements UserRepository {
     return row ? this.toDomain(row) : null;
   }
 
+  async update(user: User): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        type: user.type,
+        crmv: user.crmv,
+        crmvActivatedAt: user.crmvActivatedAt,
+      },
+    });
+  }
+
   // Traduz a linha do banco pra entidade. Um lugar só, os dois métodos usam.
   private toDomain(row: UserRow): User {
     return User.restore({
