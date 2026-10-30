@@ -11,3 +11,7 @@ export const registerUserSchema = z.object({
   type: z.enum(['professional', 'student']),
   crmv: z.string().trim().nullish(),
 });
+
+export const activateCrmvSchema = z.object({
+  crmv: z.string().trim().min(1, 'CRMV is required'),
+});
