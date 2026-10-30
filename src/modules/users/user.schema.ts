@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 // Validação de borda: só responde "essa requisição está bem formada?".
 // A regra de negócio (profissional exige CRMV) NÃO mora aqui, mora na entidade,
@@ -10,8 +10,8 @@ export const registerUserSchema = z.object({
   password: z.string().min(8, 'Password must have at least 8 characters'),
   type: z.enum(['professional', 'student']),
   crmv: z.string().trim().nullish(),
-});
+})
 
 export const activateCrmvSchema = z.object({
   crmv: z.string().trim().min(1, 'CRMV is required'),
-});
+})

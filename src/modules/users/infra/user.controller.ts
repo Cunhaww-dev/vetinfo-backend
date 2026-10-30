@@ -1,10 +1,10 @@
-import type { Request, Response } from 'express';
-import type { DomainError } from '../../../shared/errors/domain-error.ts';
-import type { AuthLocals } from '../../../shared/http/ensure-authenticated.middleware.ts';
-import type { GetUserProfile } from '../application/get-user-profile.usecase.ts';
-import type { RegisterUser } from '../application/register-user.usecase.ts';
-import type { ActivateCrmv } from '../application/activate-crmv.usecase.ts';
-import type { User } from '../domain/user-entity.ts';
+import type { Request, Response } from 'express'
+import type { DomainError } from '../../../shared/errors/domain-error.ts'
+import type { AuthLocals } from '../../../shared/http/ensure-authenticated.middleware.ts'
+import type { GetUserProfile } from '../application/get-user-profile.usecase.ts'
+import type { RegisterUser } from '../application/register-user.usecase.ts'
+import type { ActivateCrmv } from '../application/activate-crmv.usecase.ts'
+import type { User } from '../domain/user-entity.ts'
 
 const STATUS_BY_ERROR_CODE: Record<string, number> = {
   EMAIL_ALREADY_IN_USE: 409,
@@ -12,11 +12,11 @@ const STATUS_BY_ERROR_CODE: Record<string, number> = {
   INVALID_CRMV_FORMAT: 422,
   USER_NOT_FOUND: 404,
   CRMV_ALREADY_ACTIVATED: 409,
-};
+}
 
 function sendDomainError(res: Response, error: DomainError) {
-  const status = STATUS_BY_ERROR_CODE[error.code] ?? 400;
-  return res.status(status).json({ code: error.code, message: error.message });
+  const status = STATUS_BY_ERROR_CODE[error.code] ?? 400
+  return res.status(status).json({ code: error.code, message: error.message })
 }
 
 // Formato do User na resposta HTTP. Um lugar só, as duas rotas usam.
@@ -27,7 +27,7 @@ function toHttp(user: User) {
     email: user.email,
     type: user.type,
     crmv: user.crmv,
-  };
+  }
 }
 
 export class UserController {
@@ -38,7 +38,7 @@ export class UserController {
   ) {}
 
   register = async (req: Request, res: Response) => {
-    const { name, email, password, type, crmv } = req.body;
+    const { name, email, password, type, crmv } = req.body
 
     const result = await this.registerUser.execute({
       name,
@@ -46,37 +46,37 @@ export class UserController {
       password,
       type,
       crmv,
-    });
+    })
 
     if (result.isLeft()) {
-      return sendDomainError(res, result.value);
+      return sendDomainError(res, result.value)
     }
 
-    return res.status(201).json(toHttp(result.value));
-  };
+    return res.status(201).json(toHttp(result.value))
+  }
 
   me = async (_req: Request, res: Response<unknown, AuthLocals>) => {
     const result = await this.getUserProfile.execute({
       userId: res.locals.userId,
-    });
+    })
 
     if (result.isLeft()) {
-      return sendDomainError(res, result.value);
+      return sendDomainError(res, result.value)
     }
 
-    return res.status(200).json(toHttp(result.value));
-  };
+    return res.status(200).json(toHttp(result.value))
+  }
 
   activateCrmv = async (req: Request, res: Response<unknown, AuthLocals>) => {
     const result = await this.activateCrmvUseCase.execute({
       userId: res.locals.userId,
       crmv: req.body.crmv,
-    });
+    })
 
     if (result.isLeft()) {
-      return sendDomainError(res, result.value);
+      return sendDomainError(res, result.value)
     }
 
-    return res.status(200).json(toHttp(result.value));
-  };
+    return res.status(200).json(toHttp(result.value))
+  }
 }
