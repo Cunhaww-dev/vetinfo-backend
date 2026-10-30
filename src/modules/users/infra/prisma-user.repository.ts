@@ -1,4 +1,7 @@
-import type { PrismaClient } from '../../../generated/prisma/client.ts';
+import type {
+  PrismaClient,
+  User as UserRow,
+} from '../../../generated/prisma/client.ts';
 import { User } from '../domain/user-entity.ts';
 import type { UserRepository } from '../domain/user-repository.ts';
 
@@ -7,9 +10,16 @@ export class PrismaUserRepository implements UserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     const row = await this.prisma.user.findUnique({ where: { email } });
+    return row ? this.toDomain(row) : null;
+  }
 
-    if (!row) return null;
+  async findById(id: string): Promise<User | null> {
+    const row = await this.prisma.user.findUnique({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
 
+  // Traduz a linha do banco pra entidade. Um lugar só, os dois métodos usam.
+  private toDomain(row: UserRow): User {
     return User.restore({
       id: row.id,
       name: row.name,
