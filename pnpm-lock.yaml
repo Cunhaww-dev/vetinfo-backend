@@ -219,9 +219,15 @@ importers:
       express:
         specifier: ^5.2.1
         version: 5.2.1
+      swagger-ui-express:
+        specifier: 5.0.1
+        version: 5.0.1(express@5.2.1)
       zod:
         specifier: ^4.5.4
         version: 4.5.4
+      zod-openapi:
+        specifier: 6.0.2
+        version: 6.0.2(zod@4.5.4)
     devDependencies:
       '@types/express':
         specifier: ^5.0.6
@@ -229,6 +235,9 @@ importers:
       '@types/node':
         specifier: ^26.4.0
         version: 26.4.0
+      '@types/swagger-ui-express':
+        specifier: 4.1.8
+        version: 4.1.8
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -662,6 +671,9 @@ packages:
       '@types/react':
         optional: true
 
+  '@scarf/scarf@1.4.0':
+    resolution: {integrity: sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==}
+
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
@@ -739,6 +751,9 @@ packages:
 
   '@types/serve-static@2.2.0':
     resolution: {integrity: sha512-8mam4H1NHLtu7nmtalF7eyBH14QyOASmcxHhSfEoRyr0nP/YdoesEtU+uSRvMe96TW/HPTtkoKqQLl53N7UXMQ==}
+
+  '@types/swagger-ui-express@4.1.8':
+    resolution: {integrity: sha512-AhZV8/EIreHFmBV5wAs0gzJUNq9JbbSXgJLQubCC0jtIo6prnI9MIRRxnU4MZX9RB9yXxF1V4R7jtLl/Wcj31g==}
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     resolution: {integrity: sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==}
@@ -1602,6 +1617,15 @@ packages:
   std-env@3.10.0:
     resolution: {integrity: sha512-5GS12FdOZNliM5mAOxFRg7Ir0pWz8MdpYm6AY6VPkGpbA7ZzmbzNcBJQ0GPvvyWgcY7QAhCgf9Uy89I03faLkg==}
 
+  swagger-ui-dist@5.34.1:
+    resolution: {integrity: sha512-VSr8fXfI93obYaQicLJbLUKGRxDojj/SfRJDDLCioGTUBj4BK/Nj4eE9jCeCAnJxVLi7iS+08PbiZLyrQKBkJQ==}
+
+  swagger-ui-express@5.0.1:
+    resolution: {integrity: sha512-SrNU3RiBGTLLmFU8GIJdOdanJTl4TOmT27tt3bWWHppqYmAZ6IDuEuBvMU6nZq0zLEe6b/1rACXCgLZqO6ZfrA==}
+    engines: {node: '>= v0.10.32'}
+    peerDependencies:
+      express: '>=4.0.0 || >=5.0.0-beta'
+
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
@@ -1653,6 +1677,12 @@ packages:
 
   zeptomatch@2.1.0:
     resolution: {integrity: sha512-KiGErG2J0G82LSpniV0CtIzjlJ10E04j02VOudJsPyPwNZgGnRKQy7I1R7GMyg/QswnE4l7ohSGrQbQbjXPPDA==}
+
+  zod-openapi@6.0.2:
+    resolution: {integrity: sha512-SwC5Ppi2ov8WimzNWP/XK95VqPyLDzxPYj10HgNPzhZH9gO7zx0sxdYL9eq7wOADHx1JddOApjhYDmMWQvnVnw==}
+    engines: {node: '>=22.14.0'}
+    peerDependencies:
+      zod: ^4.0.0
 
   zod@4.5.4:
     resolution: {integrity: sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==}
@@ -1988,6 +2018,8 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.18
 
+  '@scarf/scarf@1.4.0': {}
+
   '@standard-schema/spec@1.1.0': {}
 
   '@types/body-parser@1.19.6':
@@ -2074,6 +2106,11 @@ snapshots:
     dependencies:
       '@types/http-errors': 2.0.5
       '@types/node': 26.4.0
+
+  '@types/swagger-ui-express@4.1.8':
+    dependencies:
+      '@types/express': 5.0.6
+      '@types/serve-static': 2.2.0
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
@@ -2911,6 +2948,15 @@ snapshots:
 
   std-env@3.10.0: {}
 
+  swagger-ui-dist@5.34.1:
+    dependencies:
+      '@scarf/scarf': 1.4.0
+
+  swagger-ui-express@5.0.1(express@5.2.1):
+    dependencies:
+      express: 5.2.1
+      swagger-ui-dist: 5.34.1
+
   toidentifier@1.0.1: {}
 
   tsx@4.23.12:
@@ -2970,5 +3016,9 @@ snapshots:
     dependencies:
       grammex: 3.1.13
       graphmatch: 1.1.1
+
+  zod-openapi@6.0.2(zod@4.5.4):
+    dependencies:
+      zod: 4.5.4
 
   zod@4.5.4: {}
