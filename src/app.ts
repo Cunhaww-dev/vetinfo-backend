@@ -9,11 +9,13 @@ import { guardianRouter } from './modules/guardians/infra/guardian.routes.ts'
 import { patientRouter } from './modules/patients/infra/patient.routes.ts'
 import { visitRouter } from './modules/visits/infra/visit.routes.ts'
 import { errorHandler } from './shared/http/error-handler.middleware.ts'
+import { docsRouter } from './shared/docs/docs.routes.ts'
 
 const app = express()
 app.all('/api/auth/*splat', toNodeHandler(auth))
 app.use(express.json())
 app.use(healthRouter)
+app.use(docsRouter) // Swagger em /docs
 app.use(userRouter)
 app.use(catalogRouter)
 app.use(guardianRouter)
