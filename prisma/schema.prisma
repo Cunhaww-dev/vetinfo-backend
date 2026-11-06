@@ -81,3 +81,21 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+model Species {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  breeds Breed[]
+
+  @@map("species")
+}
+
+model Breed {
+  id        String  @id @default(uuid())
+  name      String
+  speciesId String  @map("species_id")
+  species   Species @relation(fields: [speciesId], references: [id], onDelete: Restrict)
+
+  @@unique([speciesId, name])
+  @@map("breeds")
+}
