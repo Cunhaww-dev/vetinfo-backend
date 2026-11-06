@@ -23,12 +23,10 @@ export function errorHandler(
 
   // JSON quebrado no body. O express.json() lança esse erro antes de chegar na rota.
   if (error instanceof SyntaxError && 'body' in error) {
-    return res
-      .status(400)
-      .json({
-        code: 'INVALID_JSON',
-        message: 'Request body is not a valid JSON',
-      })
+    return res.status(400).json({
+      code: 'INVALID_JSON',
+      message: 'Request body is not a valid JSON',
+    })
   }
 
   console.error(error)
