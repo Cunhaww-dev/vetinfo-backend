@@ -64,6 +64,19 @@ pnpm exec prisma migrate reset      # apaga e recria o banco local, útil antes 
 docker compose down                 # derruba o container, o volume nomeado preserva os dados
 ```
 
+## Documentação da API (Swagger)
+
+Com a API rodando, abra **http://localhost:3334/docs**. A tela mostra todas as rotas, os corpos, as respostas e os erros, e deixa testar cada rota.
+
+1. Chame `POST /api/auth/sign-in/email` na própria tela. O navegador guarda o cookie de sessão.
+2. As outras rotas passam a funcionar com esse cookie.
+
+O documento OpenAPI cru fica em **http://localhost:3334/docs/openapi.json**. O front pode gerar os tipos a partir dele:
+
+```bash
+npx openapi-typescript http://localhost:3334/docs/openapi.json -o src/api/schema.d.ts
+```
+
 ## Endpoints
 
 Todas as rotas, menos `/health`, `POST /users` e as de `/api/auth/*`, pedem login (cookie de sessão do better-auth).
@@ -190,3 +203,5 @@ Separando app.ts e server.ts pois quando tivermos testes E2E com vitest o teste 
 **Zod fica na borda e em nenhum lugar além dela.** A validação de formato vive em `user.schema.ts`, na raiz do módulo, aplicada por um middleware genérico em `shared/http/` que qualquer módulo novo reusa passando o próprio schema. Nenhum arquivo de `domain/` ou `application/` importa Zod, e os tipos `z.infer<...>` foram deliberadamente não exportados: se um use case tipasse sua entrada com `z.infer`, a biblioteca de validação teria vazado para a camada de aplicação por via de tipo, sem ninguém perceber no diff. Os tipos de entrada dos use cases são escritos à mão porque são o contrato da aplicação, não subproduto da ferramenta.
 
 **O CLI do Prisma está pinado em `7.10.0` e não deve ser atualizado com `@latest`.** Na época da instalação a tag `latest` do CLI apontava para um release candidate do 8 enquanto o `@prisma/client` apontava para o 7 estável, o que deixa os dois em majors diferentes e faz flags do CLI sumirem sem aviso. Vale ignorar o banner de update que aparece no terminal até o 8 sair de RC.
+
+**A doc da API nasce dos schemas Zod, e não de um arquivo escrito à mão.** Cada módulo tem um `infra/<módulo>.docs.ts`, que usa os mesmos schemas de validação das rotas para descrever o corpo da requisição. Se um campo mudar no schema, a doc muda junto. O `zod-openapi` só lê o `.meta()` nativo do Zod 4, sem alterar o Zod. As respostas ainda são descritas à mão no `.docs.ts`, porque o `toHttp` do controller não tem schema. O `shared/docs/openapi-document.ts` só junta os módulos num documento.
