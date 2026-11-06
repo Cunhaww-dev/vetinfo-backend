@@ -18,18 +18,20 @@ enum UserType {
 }
 
 model User {
-  id              String    @id @default(uuid())
+  id              String     @id @default(uuid())
   name            String
-  email           String    @unique
-  emailVerified   Boolean   @default(false) @map("email_verified")
+  email           String     @unique
+  emailVerified   Boolean    @default(false) @map("email_verified")
   image           String?
   type            UserType
   crmv            String?
-  crmvActivatedAt DateTime? @map("crmv_activated_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  crmvActivatedAt DateTime?  @map("crmv_activated_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
   sessions        Session[]
   accounts        Account[]
+  guardians       Guardian[]
+  patients        Patient[]
 
   @@map("users")
 }
@@ -91,11 +93,75 @@ model Species {
 }
 
 model Breed {
-  id        String  @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  speciesId String  @map("species_id")
-  species   Species @relation(fields: [speciesId], references: [id], onDelete: Restrict)
+  speciesId String    @map("species_id")
+  species   Species   @relation(fields: [speciesId], references: [id], onDelete: Restrict)
+  patients  Patient[]
 
   @@unique([speciesId, name])
   @@map("breeds")
+}
+
+enum PatientSex {
+  male
+  female
+}
+
+// Tutor do animal. "Guardian" e não "owner", porque o dono do registro é o usuário (userId).
+model Guardian {
+  id        String            @id @default(uuid())
+  userId    String            @map("user_id")
+  user      User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  name      String
+  phone     String?
+  email     String?
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+  addresses GuardianAddress[]
+  patients  Patient[]
+
+  @@index([userId])
+  @@map("guardians")
+}
+
+// Histórico de endereços. Só um tem current = true.
+model GuardianAddress {
+  id         String   @id @default(uuid())
+  guardianId String   @map("guardian_id")
+  guardian   Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  street     String
+  number     String
+  complement String?
+  district   String
+  city       String
+  state      String
+  zipCode    String   @map("zip_code")
+  current    Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([guardianId])
+  @@map("guardian_addresses")
+}
+
+model Patient {
+  id         String     @id @default(uuid())
+  userId     String     @map("user_id")
+  user       User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  guardianId String?    @map("guardian_id")
+  guardian   Guardian?  @relation(fields: [guardianId], references: [id], onDelete: SetNull)
+  breedId    String     @map("breed_id")
+  breed      Breed      @relation(fields: [breedId], references: [id], onDelete: Restrict)
+  name       String
+  sex        PatientSex
+  neutered   Boolean    @default(false)
+  coatColor  String?    @map("coat_color")
+  birthDate  DateTime?  @map("birth_date") @db.Date
+  microchip  String?
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([guardianId])
+  @@map("patients")
 }
