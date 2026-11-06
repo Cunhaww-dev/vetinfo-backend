@@ -32,6 +32,7 @@ model User {
   accounts        Account[]
   guardians       Guardian[]
   patients        Patient[]
+  visits          Visit[]
 
   @@map("users")
 }
@@ -160,8 +161,44 @@ model Patient {
   microchip  String?
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
+  visits     Visit[]
 
   @@index([userId])
   @@index([guardianId])
   @@map("patients")
+}
+
+// Atendimento. O userId é o autor (criado_por do DER) e também o escopo.
+model Visit {
+  id              String     @id @default(uuid())
+  userId          String     @map("user_id")
+  user            User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  // Snapshot do tipo do autor no momento da criação. Nunca muda.
+  authorType      UserType   @map("author_type")
+  patientId       String     @map("patient_id")
+  patient         Patient    @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  visitedAt       DateTime   @map("visited_at")
+  weightKg        Float?     @map("weight_kg")
+  temperatureC    Float?     @map("temperature_c")
+  heartRate       Int?       @map("heart_rate")
+  respiratoryRate Int?       @map("respiratory_rate")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  soap            VisitSoap?
+
+  @@index([userId])
+  @@index([patientId, visitedAt])
+  @@map("visits")
+}
+
+// 1:1 com o atendimento. A chave é o próprio visitId.
+model VisitSoap {
+  visitId    String  @id @map("visit_id")
+  visit      Visit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  subjective String?
+  objective  String?
+  assessment String?
+  plan       String?
+
+  @@map("visit_soaps")
 }
