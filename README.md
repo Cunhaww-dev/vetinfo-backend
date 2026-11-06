@@ -33,14 +33,20 @@ openssl rand -base64 32
 docker compose up -d
 docker ps
 
-# 6. Cria as tabelas e gera o Prisma Client
+# 6. Cria as tabelas
 pnpm exec prisma migrate dev
 
-# 7. Sobe a API em modo watch
+# 7. Gera o Prisma Client
+pnpm exec prisma generate
+
+# 8. Popula o catálogo de espécies e raças
+pnpm exec prisma db seed
+
+# 9. Sobe a API em modo watch
 pnpm dev
 ```
 
-Se estiver clonando o projeto do zero, o passo 6 não é opcional. A pasta `src/generated/prisma` está no `.gitignore` porque é código gerado, então em uma cópia nova ela não existe e a aplicação não sobe sem ela. O `migrate dev` já roda o `generate` no fim; se precisar apenas regerar o client sem mexer no banco, use `pnpm exec prisma generate`.
+Se estiver clonando o projeto do zero, os passos 6, 7 e 8 não são opcionais. A pasta `src/generated/prisma` está no `.gitignore` porque é código gerado, então em uma cópia nova ela não existe e a aplicação não sobe sem ela. **No Prisma 7 o `migrate dev` não roda mais o `generate`**: depois de toda migration nova, rode o `generate` de novo. O CLI acha o `prisma7.config.ts` sozinho, sem `--config`. O seed usa `upsert`, então pode rodar mais de uma vez sem duplicar nada.
 
 Para conferir se está tudo de pé:
 
@@ -60,15 +66,90 @@ docker compose down                 # derruba o container, o volume nomeado pres
 
 ## Endpoints
 
+Todas as rotas, menos `/health`, `POST /users` e as de `/api/auth/*`, pedem login (cookie de sessão do better-auth).
+
+### Usuários e sessão
+
 | Método | Rota                      | O que faz                                             |
 | ------ | ------------------------- | ----------------------------------------------------- |
 | GET    | `/health`                 | Verificação de saúde                                  |
 | POST   | `/users`                  | Cadastro de veterinário (`professional` ou `student`) |
+| GET    | `/users/me`               | Perfil do usuário logado                              |
+| PATCH  | `/users/me/crmv`          | Estudante ativa o CRMV e vira `professional`          |
 | POST   | `/api/auth/sign-in/email` | Login, cria a sessão e devolve o token                |
 | GET    | `/api/auth/get-session`   | Devolve a sessão e o usuário logado                   |
 | POST   | `/api/auth/sign-out`      | Encerra a sessão                                      |
 
 As rotas `/api/auth/*` são do better-auth. O cadastro **só** acontece por `POST /users`: a rota `POST /api/auth/sign-up/email` do better-auth responde 404, e o motivo está nas decisões abaixo.
+
+### Catálogo
+
+| Método | Rota                         | O que faz                                    |
+| ------ | ---------------------------- | -------------------------------------------- |
+| GET    | `/species`                   | Lista as espécies                            |
+| GET    | `/species/:speciesId/breeds` | Lista as raças da espécie, com o SRD no topo |
+
+### Tutores (`Guardian`)
+
+| Método | Rota                             | O que faz                                |
+| ------ | -------------------------------- | ---------------------------------------- |
+| POST   | `/guardians`                     | Cria o tutor, com ou sem endereço        |
+| GET    | `/guardians`                     | Lista os tutores do usuário              |
+| GET    | `/guardians/:guardianId`         | Mostra um tutor com o endereço atual     |
+| PATCH  | `/guardians/:guardianId`         | Muda nome, telefone ou e-mail            |
+| PUT    | `/guardians/:guardianId/address` | Muda o endereço, o antigo vira histórico |
+
+### Pacientes (`Patient`)
+
+| Método | Rota                   | O que faz                                           |
+| ------ | ---------------------- | --------------------------------------------------- |
+| POST   | `/patients`            | Cria o paciente (o tutor é opcional)                |
+| GET    | `/patients`            | Lista os pacientes (filtro opcional `?guardianId=`) |
+| GET    | `/patients/:patientId` | Mostra um paciente                                  |
+| PATCH  | `/patients/:patientId` | Muda qualquer campo, `null` apaga o campo           |
+
+### Atendimentos e SOAP (`Visit`)
+
+| Método | Rota                                      | O que faz                                                          |
+| ------ | ----------------------------------------- | ------------------------------------------------------------------ |
+| POST   | `/patients/:patientId/visits`             | Cria o atendimento com sinais vitais e SOAP                        |
+| GET    | `/patients/:patientId/visits`             | Histórico de atendimentos do paciente, do mais novo ao mais antigo |
+| GET    | `/patients/:patientId/vital-signs/latest` | Últimos sinais vitais, para sugerir no novo atendimento            |
+| GET    | `/visits/:visitId`                        | Mostra um atendimento                                              |
+| PATCH  | `/visits/:visitId`                        | Muda data, sinais vitais ou SOAP. O autor nunca muda               |
+
+Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opcionais; sem `visitedAt`, vale a hora atual):
+
+```json
+{
+  "visitedAt": "2026-11-01T10:00:00-03:00",
+  "vitalSigns": {
+    "weightKg": 12.5,
+    "temperatureC": 38.6,
+    "heartRate": 110,
+    "respiratoryRate": 24
+  },
+  "soap": {
+    "subjective": "Vômito há 2 dias",
+    "objective": "Desidratação leve",
+    "assessment": "Gastroenterite",
+    "plan": "Soro e dieta"
+  }
+}
+```
+
+### Erros
+
+Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.
+
+| Status | Quando                                                                       |
+| ------ | ---------------------------------------------------------------------------- |
+| 400    | Corpo fora do formato (`VALIDATION_ERROR`) ou JSON quebrado (`INVALID_JSON`) |
+| 401    | Sem sessão (`UNAUTHORIZED`)                                                  |
+| 404    | O registro não existe **ou é de outro usuário**                              |
+| 409    | Conflito (ex.: `EMAIL_ALREADY_IN_USE`)                                       |
+| 422    | Regra de domínio (ex.: `INVALID_VISIT_DATE`, `INVALID_VITAL_SIGNS`)          |
+| 500    | Erro inesperado (`INTERNAL_ERROR`), sempre em JSON                           |
 
 ## Decisões tomadas durante o desenvolvimento
 
@@ -80,7 +161,15 @@ Separando app.ts e server.ts pois quando tivermos testes E2E com vitest o teste 
 
 **Erro de regra de negócio é retorno, não exceção.** Os use cases devolvem `Either<DomainError, Resultado>` em vez de lançar. O motivo é que "esse email já está em uso" não é excepcional, é um resultado previsto, e `throw` esconde do tipo de retorno tudo que pode dar errado, o que empurra o controller para um `try/catch` genérico que traduz o mundo inteiro em 500. Com `Either` o compilador obriga quem chama a tratar os dois caminhos.
 
-**A classe base de erro de domínio não estende o `Error` nativo e não carrega `statusCode`.** Não estende porque esses erros nunca são lançados, são devolvidos dentro do `Left`, e o `stack` do `Error` descreve onde um `throw` aconteceu, informação que aqui não existe. E não carrega status code porque quem traduz para HTTP é o controller: se o erro nascesse com um 404 dentro, o domínio teria decidido uma questão de transporte, e o mesmo use case chamado por um worker ou por um CLI carregaria um número que não significa nada ali. O mapa de erro para status vive em `user.controller.ts`, que conhece HTTP e tem todo o direito de conhecer.
+**A classe base de erro de domínio não estende o `Error` nativo e não carrega `statusCode`.** Não estende porque esses erros nunca são lançados, são devolvidos dentro do `Left`, e o `stack` do `Error` descreve onde um `throw` aconteceu, informação que aqui não existe. E não carrega status code: se o erro nascesse com um 404 dentro, o domínio teria decidido uma questão de transporte, e o mesmo use case chamado por um worker ou por um CLI carregaria um número que não significa nada ali. O erro carrega só um `type` (`invalid`, `not_found` ou `conflict`), que diz o que aconteceu e não como responder.
+
+**Um handler global de erros traduz o `type` para HTTP.** O `errorHandler` em `shared/http/` é o último `app.use` do `app.ts` e tem um mapa só para o projeto todo: `invalid` vira 422, `not_found` vira 404, `conflict` vira 409. O controller faz `if (result.isLeft()) throw result.value`, e o Express 5 leva o erro de uma rota async até o handler. Os use cases continuam devolvendo `Either`. Módulo novo não mexe no handler, só escolhe o `type` do erro. Qualquer outro erro vira 500 em JSON, e não mais a página HTML padrão do Express.
+
+**Todo dado clínico é do usuário que criou, e outro usuário recebe 404.** Toda busca de repositório recebe o `userId` junto com o id (`findById(id, userId)`). Quando um usuário pede o paciente de outro, a resposta é 404, e não 403: um 403 confirmaria que o registro existe.
+
+**O atendimento congela o tipo do autor (snapshot).** Na criação, o `RegisterVisit` lê o tipo do usuário no banco e copia para `authorType`. A entidade `Visit` não deixa esse campo mudar depois, e o `PATCH` ignora o campo. Se o estudante ativar o CRMV amanhã, os atendimentos de antes continuam `student`. É o mesmo padrão da nota fiscal que congela o preço: o front usa esse campo para o badge "atendimento de estudante", sem calcular nada a partir da data do CRMV.
+
+**Sinais vitais e SOAP são value objects dentro do atendimento.** Eles não têm id próprio no domínio. O SOAP fica numa tabela 1:1 (`visit_soaps`) cuja chave é o próprio `visitId`, e o Prisma grava os dois numa escrita aninhada, que é uma transação só. O Zod confere o formato (número, inteiro); a faixa aceita (ex.: temperatura entre 25 e 45 °C) é regra do `VitalSigns`.
 
 **A entidade tem construtor privado e dois métodos estáticos com propósitos diferentes.** O `create()` julga dados novos, valida a invariante e devolve `Either`. O `restore()` remonta um registro que o banco já guardou, recebe o id pronto e devolve a entidade direto, sem revalidar. Não revalidar é intencional: aquela linha já passou pela validação quando nasceu, e se a regra endurecer amanhã os registros antigos ainda precisam conseguir ser carregados. Com o construtor privado, `create()` é a única porta de entrada, e "não existe usuário inválido em memória" passa a ser uma garantia e não uma intenção.
 
