@@ -22,6 +22,8 @@ cp .env.example .env
 
 Antes de seguir, **preencha o `.env`**. Os campos `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` são lidos pelo Docker Compose ao criar o banco, e a `DATABASE_URL` é lida pela aplicação e pelo Prisma. Os dois precisam concordar: se o usuário do compose for `vetinfo` e a `DATABASE_URL` disser `postgres`, o container sobe normalmente e a aplicação não conecta. A porta na `DATABASE_URL` é a **5433**, e o motivo está explicado nas decisões abaixo.
 
+O `BETTER_AUTH_TRUSTED_ORIGINS` lista os endereços do front que podem fazer login, separados por vírgula. Sem ele, o login vindo do front (`http://localhost:5173`) responde 403, porque o better-auth confere o cabeçalho `Origin`, e o proxy do Vite não muda esse cabeçalho. O better-auth lê a variável sozinho, sem código.
+
 O `BETTER_AUTH_SECRET` assina as sessões e não pode ficar vazio. Gere um valor com o comando abaixo e cole no `.env`. O `BETTER_AUTH_URL` já vem certo para rodar local.
 
 ```bash
