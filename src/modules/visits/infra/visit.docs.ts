@@ -7,7 +7,11 @@ import {
   unauthorized,
   uuid,
 } from '../../../shared/docs/responses.ts'
-import { registerVisitSchema, updateVisitSchema } from '../visit.schema.ts'
+import {
+  recentPatientsQuerySchema,
+  registerVisitSchema,
+  updateVisitSchema,
+} from '../visit.schema.ts'
 
 const vitalSignsSchema = z
   .object({
@@ -49,6 +53,18 @@ const latestVitalSignsSchema = z
   })
   .nullable()
   .meta({ id: 'LatestVitalSigns' })
+
+const recentPatientSchema = z
+  .object({
+    visitId: uuid,
+    visitedAt: z.iso.datetime(),
+    patient: z.object({
+      id: uuid,
+      name: z.string().meta({ example: 'Thor' }),
+      breedId: uuid,
+    }),
+  })
+  .meta({ id: 'RecentPatient' })
 
 const patientParams = { path: z.object({ patientId: uuid }) }
 const visitParams = { path: z.object({ visitId: uuid }) }
@@ -109,6 +125,20 @@ export const visitPaths: ZodOpenApiPathsObject = {
         '200': json('Os sinais vitais, ou null', latestVitalSignsSchema),
         '401': unauthorized,
         '404': patientNotFound,
+      },
+    },
+  },
+  '/visits/recent': {
+    get: {
+      tags: ['Visits'],
+      operationId: 'listRecentPatients',
+      summary: 'Pacientes atendidos há pouco',
+      description:
+        'Um item por paciente, com o atendimento mais novo dele, do mais novo para o mais velho. Serve para a lista "atendidos há pouco" da sidebar. Sem atendimentos, a lista vem vazia.',
+      requestParams: { query: recentPatientsQuerySchema },
+      responses: {
+        '200': json('Os pacientes', z.array(recentPatientSchema)),
+        '401': unauthorized,
       },
     },
   },
