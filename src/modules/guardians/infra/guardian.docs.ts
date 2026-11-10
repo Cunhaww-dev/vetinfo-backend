@@ -39,6 +39,7 @@ const guardianSchema = z
     address: addressResponseSchema
       .nullable()
       .meta({ description: 'Só o endereço atual' }),
+    createdAt: z.iso.datetime().meta({ description: 'Data do cadastro' }),
   })
   .meta({ id: 'Guardian' })
 

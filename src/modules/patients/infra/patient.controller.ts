@@ -25,6 +25,7 @@ function toHttp(patient: Patient) {
     coatColor: patient.coatColor,
     birthDate: patient.birthDate?.toISOString().slice(0, 10) ?? null,
     microchip: patient.microchip,
+    createdAt: patient.createdAt.toISOString(),
   }
 }
 
