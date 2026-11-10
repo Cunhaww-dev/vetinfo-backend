@@ -109,8 +109,10 @@ As rotas `/api/auth/*` são do better-auth. O cadastro **só** acontece por `POS
 | POST   | `/guardians`                     | Cria o tutor, com ou sem endereço        |
 | GET    | `/guardians`                     | Lista os tutores do usuário              |
 | GET    | `/guardians/:guardianId`         | Mostra um tutor com o endereço atual     |
-| PATCH  | `/guardians/:guardianId`         | Muda nome, telefone ou e-mail            |
+| PATCH  | `/guardians/:guardianId`         | Muda os dados do tutor                   |
 | PUT    | `/guardians/:guardianId/address` | Muda o endereço, o antigo vira histórico |
+
+Nome, telefone, e-mail e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O CPF é opcional: a API aceita com máscara (`529.982.247-25`), valida os dígitos verificadores e guarda só os 11 números. O mesmo CPF não pode repetir entre os tutores de um usuário (`CPF_ALREADY_IN_USE`).
 
 ### Pacientes (`Patient`)
 
@@ -160,8 +162,8 @@ Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.
 | 400    | Corpo fora do formato (`VALIDATION_ERROR`) ou JSON quebrado (`INVALID_JSON`) |
 | 401    | Sem sessão (`UNAUTHORIZED`)                                                  |
 | 404    | O registro não existe **ou é de outro usuário**                              |
-| 409    | Conflito (ex.: `EMAIL_ALREADY_IN_USE`)                                       |
-| 422    | Regra de domínio (ex.: `INVALID_VISIT_DATE`, `INVALID_VITAL_SIGNS`)          |
+| 409    | Conflito (ex.: `EMAIL_ALREADY_IN_USE`, `CPF_ALREADY_IN_USE`)                 |
+| 422    | Regra de domínio (ex.: `INVALID_CPF`, `INVALID_BIRTH_DATE`)                  |
 | 500    | Erro inesperado (`INTERNAL_ERROR`), sempre em JSON                           |
 
 ## Decisões tomadas durante o desenvolvimento
