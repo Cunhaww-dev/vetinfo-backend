@@ -115,13 +115,17 @@ model Guardian {
   userId    String            @map("user_id")
   user      User              @relation(fields: [userId], references: [id], onDelete: Restrict)
   name      String
-  phone     String?
-  email     String?
+  phone     String
+  email     String
+  cpf       String? // só os 11 dígitos
+  birthDate DateTime          @map("birth_date") @db.Date
   createdAt DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
   addresses GuardianAddress[]
   patients  Patient[]
 
+  // O mesmo CPF não repete entre os tutores de um usuário. O Postgres aceita vários NULL.
+  @@unique([userId, cpf])
   @@index([userId])
   @@map("guardians")
 }

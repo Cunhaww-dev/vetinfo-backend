@@ -11,19 +11,19 @@ export const addressSchema = z.object({
   zipCode: z.string().trim().min(1, 'Zip code is required'),
 })
 
-export const createGuardianSchema = z.object({
+// Só a forma. Os dígitos do CPF e a data no futuro são regra do domínio (Guardian).
+const fields = {
   name: z.string().trim().min(3, 'Name must have at least 3 characters'),
-  phone: z.string().trim().nullish(),
-  email: z.email('Invalid email format').nullish(),
+  phone: z.string().trim().min(1, 'Phone is required'),
+  email: z.email('Invalid email format'),
+  cpf: z.string().trim().nullish(),
+  birthDate: z.iso.date('Birth date must be YYYY-MM-DD'),
+}
+
+export const createGuardianSchema = z.object({
+  ...fields,
   address: addressSchema.nullish(),
 })
 
-export const updateGuardianSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(3, 'Name must have at least 3 characters')
-    .optional(),
-  phone: z.string().trim().nullish(),
-  email: z.email('Invalid email format').nullish(),
-})
+// Tudo opcional: campo ausente não muda. Só o CPF aceita null (apagar).
+export const updateGuardianSchema = z.object(fields).partial()
