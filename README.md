@@ -132,6 +132,7 @@ Nome, telefone, e-mail e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O
 | POST   | `/patients/:patientId/visits`             | Cria o atendimento com sinais vitais e SOAP                        |
 | GET    | `/patients/:patientId/visits`             | Histórico de atendimentos do paciente, do mais novo ao mais antigo |
 | GET    | `/patients/:patientId/vital-signs/latest` | Últimos sinais vitais, para sugerir no novo atendimento            |
+| GET    | `/visits/recent?limit=3`                  | Pacientes atendidos há pouco, um por paciente (limit de 1 a 10)    |
 | GET    | `/visits/:visitId`                        | Mostra um atendimento                                              |
 | PATCH  | `/visits/:visitId`                        | Muda data, sinais vitais ou SOAP. O autor nunca muda               |
 
