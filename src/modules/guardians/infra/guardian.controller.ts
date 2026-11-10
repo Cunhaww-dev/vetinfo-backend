@@ -33,6 +33,7 @@ function toHttp(guardian: Guardian) {
           zipCode: guardian.address.zipCode,
         }
       : null,
+    createdAt: guardian.createdAt.toISOString(),
   }
 }
 

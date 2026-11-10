@@ -30,3 +30,15 @@ export const updateVisitSchema = z.object({
   vitalSigns: vitalSignsSchema.partial().optional(),
   soap: soapSchema.partial().optional(),
 })
+
+// ?limit= vem como texto. Fora de 1 a 10 (ou não numérico) vale o padrão 3, sem erro.
+export const recentPatientsQuerySchema = z.object({
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(10)
+    .default(3)
+    .catch(3)
+    .meta({ description: 'Quantos pacientes, de 1 a 10. O padrão é 3' }),
+})

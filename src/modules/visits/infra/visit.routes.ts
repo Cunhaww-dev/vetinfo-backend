@@ -4,6 +4,7 @@ import { validateBody } from '../../../shared/http/validate-body.middleware.ts'
 import { prisma } from '../../../shared/prisma/client.ts'
 import { PrismaUserRepository } from '../../users/infra/prisma-user.repository.ts'
 import { GetLatestVitalSigns } from '../application/get-latest-vital-signs.usecase.ts'
+import { ListRecentPatients } from '../application/list-recent-patients.usecase.ts'
 import { GetVisit } from '../application/get-visit.usecase.ts'
 import { ListVisits } from '../application/list-visits.usecase.ts'
 import { RegisterVisit } from '../application/register-visit.usecase.ts'
@@ -21,6 +22,7 @@ const controller = new VisitController(
   new GetVisit(visitRepository),
   new UpdateVisit(visitRepository),
   new GetLatestVitalSigns(visitRepository),
+  new ListRecentPatients(visitRepository),
 )
 
 export const visitRouter = Router()
@@ -42,6 +44,12 @@ visitRouter.get(
   '/patients/:patientId/vital-signs/latest',
   ensureAuthenticated,
   controller.latestVitalSigns,
+)
+// Antes do /visits/:visitId, senão o Express lê "recent" como um visitId
+visitRouter.get(
+  '/visits/recent',
+  ensureAuthenticated,
+  controller.recentPatients,
 )
 visitRouter.get('/visits/:visitId', ensureAuthenticated, controller.show)
 visitRouter.patch(

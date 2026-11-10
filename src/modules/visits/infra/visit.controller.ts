@@ -1,11 +1,13 @@
 import type { Request, Response } from 'express'
 import type { AuthLocals } from '../../../shared/http/ensure-authenticated.middleware.ts'
 import type { GetLatestVitalSigns } from '../application/get-latest-vital-signs.usecase.ts'
+import type { ListRecentPatients } from '../application/list-recent-patients.usecase.ts'
 import type { GetVisit } from '../application/get-visit.usecase.ts'
 import type { ListVisits } from '../application/list-visits.usecase.ts'
 import type { RegisterVisit } from '../application/register-visit.usecase.ts'
 import type { UpdateVisit } from '../application/update-visit.usecase.ts'
 import type { Visit } from '../domain/visit-entity.ts'
+import { recentPatientsQuerySchema } from '../visit.schema.ts'
 
 type PatientParams = { patientId: string }
 type VisitParams = { visitId: string }
@@ -43,6 +45,7 @@ export class VisitController {
     private readonly getVisit: GetVisit,
     private readonly updateVisit: UpdateVisit,
     private readonly getLatestVitalSigns: GetLatestVitalSigns,
+    private readonly listRecentPatients: ListRecentPatients,
   ) {}
 
   register = async (
@@ -119,5 +122,22 @@ export class VisitController {
       visitedAt: visit.visitedAt.toISOString(),
       ...toHttp(visit).vitalSigns,
     })
+  }
+
+  recentPatients = async (req: Request, res: Response<unknown, AuthLocals>) => {
+    const { limit } = recentPatientsQuerySchema.parse(req.query)
+
+    const recent = await this.listRecentPatients.execute({
+      userId: res.locals.userId,
+      limit,
+    })
+
+    return res.status(200).json(
+      recent.map((item) => ({
+        visitId: item.visitId,
+        visitedAt: item.visitedAt.toISOString(),
+        patient: item.patient,
+      })),
+    )
   }
 }

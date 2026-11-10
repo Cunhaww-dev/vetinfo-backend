@@ -5,7 +5,10 @@ import type {
 } from '../../../generated/prisma/client.ts'
 import { Soap } from '../domain/soap.ts'
 import { Visit } from '../domain/visit-entity.ts'
-import type { VisitRepository } from '../domain/visit-repository.ts'
+import type {
+  RecentPatient,
+  VisitRepository,
+} from '../domain/visit-repository.ts'
 import { VitalSigns } from '../domain/vital-signs.ts'
 
 // O atendimento sempre vem junto com o SOAP dele
@@ -54,6 +57,30 @@ export class PrismaVisitRepository implements VisitRepository {
       orderBy: { visitedAt: 'desc' },
     })
     return rows.map((row) => this.toDomain(row))
+  }
+
+  // Um item por paciente: o distinct fica com o primeiro atendimento de cada um,
+  // e o primeiro é o mais novo por causa do orderBy.
+  async listRecentPatients(
+    userId: string,
+    limit: number,
+  ): Promise<RecentPatient[]> {
+    const rows = await this.prisma.visit.findMany({
+      where: { userId },
+      orderBy: { visitedAt: 'desc' },
+      distinct: ['patientId'],
+      take: limit,
+      select: {
+        id: true,
+        visitedAt: true,
+        patient: { select: { id: true, name: true, breedId: true } },
+      },
+    })
+    return rows.map((row) => ({
+      visitId: row.id,
+      visitedAt: row.visitedAt,
+      patient: row.patient,
+    }))
   }
 
   // O último atendimento com pelo menos um sinal vital preenchido

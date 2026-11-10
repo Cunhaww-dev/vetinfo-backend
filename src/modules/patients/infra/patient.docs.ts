@@ -25,6 +25,7 @@ const patientSchema = z
     coatColor: z.string().nullable().meta({ example: 'Caramelo' }),
     birthDate: z.iso.date().nullable().meta({ example: '2020-05-31' }),
     microchip: z.string().nullable(),
+    createdAt: z.iso.datetime().meta({ description: 'Data do cadastro' }),
   })
   .meta({ id: 'Patient' })
 
