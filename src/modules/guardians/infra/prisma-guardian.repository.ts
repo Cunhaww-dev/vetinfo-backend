@@ -4,6 +4,7 @@ import type {
   PrismaClient,
 } from '../../../generated/prisma/client.ts'
 import { Address } from '../domain/address.ts'
+import { Cpf } from '../domain/cpf.ts'
 import { Guardian } from '../domain/guardian-entity.ts'
 import type { GuardianRepository } from '../domain/guardian-repository.ts'
 
@@ -21,6 +22,8 @@ export class PrismaGuardianRepository implements GuardianRepository {
         name: guardian.name,
         phone: guardian.phone,
         email: guardian.email,
+        cpf: guardian.cpf?.value ?? null,
+        birthDate: guardian.birthDate,
         createdAt: guardian.createdAt,
         ...(guardian.address && {
           addresses: { create: this.toAddressRow(guardian.address) },
@@ -32,6 +35,14 @@ export class PrismaGuardianRepository implements GuardianRepository {
   async findById(id: string, userId: string): Promise<Guardian | null> {
     const row = await this.prisma.guardian.findFirst({
       where: { id, userId },
+      include: CURRENT_ADDRESS,
+    })
+    return row ? this.toDomain(row) : null
+  }
+
+  async findByCpf(cpf: string, userId: string): Promise<Guardian | null> {
+    const row = await this.prisma.guardian.findUnique({
+      where: { userId_cpf: { userId, cpf } },
       include: CURRENT_ADDRESS,
     })
     return row ? this.toDomain(row) : null
@@ -53,6 +64,8 @@ export class PrismaGuardianRepository implements GuardianRepository {
         name: guardian.name,
         phone: guardian.phone,
         email: guardian.email,
+        cpf: guardian.cpf?.value ?? null,
+        birthDate: guardian.birthDate,
       },
     })
   }
@@ -98,6 +111,8 @@ export class PrismaGuardianRepository implements GuardianRepository {
       name: row.name,
       phone: row.phone,
       email: row.email,
+      cpf: row.cpf ? Cpf.restore(row.cpf) : null,
+      birthDate: row.birthDate,
       address: current ? Address.restore(current) : null,
       createdAt: row.createdAt,
     })

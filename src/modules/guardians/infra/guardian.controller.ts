@@ -9,12 +9,19 @@ import type { Guardian } from '../domain/guardian-entity.ts'
 
 type GuardianParams = { guardianId: string }
 
+// "1990-05-31" vira Date. Mantém o undefined (não mexer).
+function toDate(value: string | undefined) {
+  return value === undefined ? undefined : new Date(value)
+}
+
 function toHttp(guardian: Guardian) {
   return {
     id: guardian.id,
     name: guardian.name,
     phone: guardian.phone,
     email: guardian.email,
+    cpf: guardian.cpf?.value ?? null,
+    birthDate: guardian.birthDate.toISOString().slice(0, 10),
     address: guardian.address
       ? {
           street: guardian.address.street,
@@ -39,13 +46,15 @@ export class GuardianController {
   ) {}
 
   create = async (req: Request, res: Response<unknown, AuthLocals>) => {
-    const { name, phone, email, address } = req.body
+    const { name, phone, email, cpf, birthDate, address } = req.body
 
     const result = await this.createGuardian.execute({
       userId: res.locals.userId,
       name,
       phone,
       email,
+      cpf,
+      birthDate: new Date(birthDate),
       address,
     })
     if (result.isLeft()) throw result.value
@@ -78,7 +87,7 @@ export class GuardianController {
     req: Request<GuardianParams>,
     res: Response<unknown, AuthLocals>,
   ) => {
-    const { name, phone, email } = req.body
+    const { name, phone, email, cpf, birthDate } = req.body
 
     const result = await this.updateGuardian.execute({
       userId: res.locals.userId,
@@ -86,6 +95,8 @@ export class GuardianController {
       name,
       phone,
       email,
+      cpf,
+      birthDate: toDate(birthDate),
     })
     if (result.isLeft()) throw result.value
 

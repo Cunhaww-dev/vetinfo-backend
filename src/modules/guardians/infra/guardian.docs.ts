@@ -29,8 +29,13 @@ const guardianSchema = z
   .object({
     id: uuid,
     name: z.string().meta({ example: 'Maria Souza' }),
-    phone: z.string().nullable().meta({ example: '21999990000' }),
-    email: z.email().nullable(),
+    phone: z.string().meta({ example: '21999990000' }),
+    email: z.email().meta({ example: 'maria@email.com' }),
+    cpf: z
+      .string()
+      .nullable()
+      .meta({ example: '52998224725', description: 'Só os 11 dígitos' }),
+    birthDate: z.iso.date().meta({ example: '1990-05-31' }),
     address: addressResponseSchema
       .nullable()
       .meta({ description: 'Só o endereço atual' }),
@@ -42,6 +47,12 @@ const notFound = error(
   'Tutor não existe ou é de outro usuário (GUARDIAN_NOT_FOUND)',
 )
 const invalidAddress = error('UF ou CEP inválido (INVALID_ADDRESS)')
+const invalidData = error(
+  'CPF inválido (INVALID_CPF) ou nascimento no futuro (INVALID_BIRTH_DATE)',
+)
+const cpfInUse = error(
+  'Outro tutor deste usuário já tem o CPF (CPF_ALREADY_IN_USE)',
+)
 
 export const guardianPaths: ZodOpenApiPathsObject = {
   '/guardians': {
@@ -49,7 +60,8 @@ export const guardianPaths: ZodOpenApiPathsObject = {
       tags: ['Guardians'],
       operationId: 'createGuardian',
       summary: 'Cria um tutor',
-      description: 'O endereço é opcional. O CEP aceita hífen (`01310-100`).',
+      description:
+        'O CPF e o endereço são opcionais. O CPF aceita pontos e hífen (`529.982.247-25`). O CEP aceita hífen (`01310-100`).',
       requestBody: {
         content: { 'application/json': { schema: createGuardianSchema } },
       },
@@ -57,7 +69,10 @@ export const guardianPaths: ZodOpenApiPathsObject = {
         '201': json('Tutor criado', guardianSchema),
         '400': badRequest,
         '401': unauthorized,
-        '422': invalidAddress,
+        '409': cpfInUse,
+        '422': error(
+          'Endereço (INVALID_ADDRESS), CPF (INVALID_CPF) ou nascimento (INVALID_BIRTH_DATE) inválido',
+        ),
       },
     },
     get: {
@@ -85,8 +100,9 @@ export const guardianPaths: ZodOpenApiPathsObject = {
     patch: {
       tags: ['Guardians'],
       operationId: 'updateGuardian',
-      summary: 'Muda nome, telefone ou e-mail',
-      description: 'Campo ausente não muda. `null` apaga o campo.',
+      summary: 'Muda os dados do tutor',
+      description:
+        'Campo ausente não muda. Só o CPF aceita `null`, que apaga o campo.',
       requestParams: guardianParams,
       requestBody: {
         content: { 'application/json': { schema: updateGuardianSchema } },
@@ -96,6 +112,8 @@ export const guardianPaths: ZodOpenApiPathsObject = {
         '400': badRequest,
         '401': unauthorized,
         '404': notFound,
+        '409': cpfInUse,
+        '422': invalidData,
       },
     },
   },
