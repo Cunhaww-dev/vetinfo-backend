@@ -83,7 +83,8 @@ export const userPaths: ZodOpenApiPathsObject = {
       operationId: 'signIn',
       summary: 'Login',
       description:
-        'Grava o cookie de sessão. E-mail inexistente e senha errada dão a mesma resposta (401).',
+        'Grava o cookie de sessão. E-mail inexistente e senha errada dão a mesma resposta (401).\n\n' +
+        'O token não vem no corpo, só no cookie httpOnly. Assim um script de XSS não consegue ler o token.',
       security: [],
       requestBody: {
         content: { 'application/json': { schema: signInSchema } },
@@ -91,7 +92,7 @@ export const userPaths: ZodOpenApiPathsObject = {
       responses: {
         '200': json(
           'Sessão criada. O cookie vem no Set-Cookie',
-          z.object({ token: z.string(), user: z.looseObject({}) }),
+          z.object({ redirect: z.boolean(), user: z.looseObject({}) }),
         ),
         '401': { description: 'E-mail ou senha errados' },
       },

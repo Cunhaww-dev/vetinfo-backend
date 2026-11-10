@@ -91,11 +91,13 @@ Todas as rotas, menos `/health`, `POST /users` e as de `/api/auth/*`, pedem logi
 | POST   | `/users`                  | Cadastro de veterinário (`professional` ou `student`) |
 | GET    | `/users/me`               | Perfil do usuário logado                              |
 | PATCH  | `/users/me/crmv`          | Estudante ativa o CRMV e vira `professional`          |
-| POST   | `/api/auth/sign-in/email` | Login, cria a sessão e devolve o token                |
+| POST   | `/api/auth/sign-in/email` | Login, cria a sessão e grava o cookie                 |
 | GET    | `/api/auth/get-session`   | Devolve a sessão e o usuário logado                   |
 | POST   | `/api/auth/sign-out`      | Encerra a sessão                                      |
 
 As rotas `/api/auth/*` são do better-auth. O cadastro **só** acontece por `POST /users`: a rota `POST /api/auth/sign-up/email` do better-auth responde 404, e o motivo está nas decisões abaixo.
+
+O token da sessão **nunca** vem no corpo da resposta, só no cookie `httpOnly`. Por padrão, o better-auth devolve o token no corpo do login, do `get-session` e do `list-sessions`. Um hook `after` no `auth.ts` tira o token dessas 3 rotas. Assim, se o front tiver uma falha de XSS, o script não consegue ler o token. O front não precisa do token: o navegador manda o cookie sozinho.
 
 ### Catálogo
 
