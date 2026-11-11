@@ -68,6 +68,8 @@ docker compose down                 # derruba o container, o volume nomeado pres
 
 ## Documentação da API (Swagger)
 
+**Só fora de produção.** Com `NODE_ENV=production`, as rotas `/docs` não existem (404). A doc mostra todas as rotas e todos os erros, e isso ajuda quem quer atacar a API.
+
 Com a API rodando, abra **http://localhost:3334/docs**. A tela mostra todas as rotas, os corpos, as respostas e os erros, e deixa testar cada rota.
 
 1. Chame `POST /api/auth/sign-in/email` na própria tela. O navegador guarda o cookie de sessão.
