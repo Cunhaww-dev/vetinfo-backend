@@ -66,6 +66,17 @@ pnpm exec prisma migrate reset      # apaga e recria o banco local, útil antes 
 docker compose down                 # derruba o container, o volume nomeado preserva os dados
 ```
 
+## Testes
+
+Testes de unidade com Vitest. Cada teste fica ao lado do arquivo que ele testa (`cpf.ts` e `cpf.spec.ts`).
+
+```bash
+pnpm test        # roda uma vez
+pnpm test:watch  # roda de novo a cada mudança
+```
+
+Hoje os testes cobrem as regras puras do domínio, sem banco: o value object `Cpf` e o `User.activateCrmv`.
+
 ## Documentação da API (Swagger)
 
 Com a API rodando, abra **http://localhost:3334/docs**. A tela mostra todas as rotas, os corpos, as respostas e os erros, e deixa testar cada rota.
