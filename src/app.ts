@@ -15,7 +15,8 @@ const app = express()
 app.all('/api/auth/*splat', toNodeHandler(auth))
 app.use(express.json())
 app.use(healthRouter)
-app.use(docsRouter) // Swagger em /docs
+// Swagger em /docs. Em produção ele não sobe: a doc mostra todas as rotas e os erros
+if (process.env.NODE_ENV !== 'production') app.use(docsRouter)
 app.use(userRouter)
 app.use(catalogRouter)
 app.use(guardianRouter)
