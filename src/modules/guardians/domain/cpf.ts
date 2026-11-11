@@ -32,6 +32,11 @@ export class Cpf {
     return right(new Cpf(digits))
   }
 
+  // "52998224725" vira "***.982.247-**". Mostra só os 6 dígitos do meio (LGPD: minimização).
+  masked(): string {
+    return `***.${this.value.slice(3, 6)}.${this.value.slice(6, 9)}-**`
+  }
+
   static restore(value: string): Cpf {
     return new Cpf(value)
   }

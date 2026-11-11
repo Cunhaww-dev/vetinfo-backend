@@ -31,10 +31,11 @@ const guardianSchema = z
     name: z.string().meta({ example: 'Maria Souza' }),
     phone: z.string().meta({ example: '21999990000' }),
     email: z.email().meta({ example: 'maria@email.com' }),
-    cpf: z
-      .string()
-      .nullable()
-      .meta({ example: '52998224725', description: 'Só os 11 dígitos' }),
+    cpf: z.string().nullable().meta({
+      example: '52998224725',
+      description:
+        'Só os 11 dígitos. Na lista (`GET /guardians`), vem mascarado: `***.982.247-**`',
+    }),
     birthDate: z.iso.date().meta({ example: '1990-05-31' }),
     address: addressResponseSchema
       .nullable()
@@ -81,7 +82,10 @@ export const guardianPaths: ZodOpenApiPathsObject = {
       operationId: 'listGuardians',
       summary: 'Lista os tutores do usuário',
       responses: {
-        '200': json('Os tutores, por nome', z.array(guardianSchema)),
+        '200': json(
+          'Os tutores, por nome. O CPF vem mascarado (`***.982.247-**`). Para ver o CPF inteiro, use o GET do tutor',
+          z.array(guardianSchema),
+        ),
         '401': unauthorized,
       },
     },
