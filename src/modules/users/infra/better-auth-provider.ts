@@ -5,7 +5,7 @@ import { User } from '../domain/user-entity.ts'
 export class BetterAuthProvider implements AuthProvider {
   // A classe BetterAuthProvider promete cumprir com o que tem em AuthProvider, caso tenha outra assinatura o TS mostra um erro
   async signUp(user: User, password: string): Promise<User> {
-    const { user: created } = await auth.api.signUpEmail({
+    const { user: created, token } = await auth.api.signUpEmail({
       body: {
         name: user.name,
         email: user.email,
@@ -15,6 +15,15 @@ export class BetterAuthProvider implements AuthProvider {
         crmvActivatedAt: user.crmvActivatedAt,
       },
     })
+
+    // O signUpEmail também faz login e cria uma sessão. O cookie dessa sessão
+    // nunca chega ao front, então ela ficaria válida no banco por 7 dias sem uso.
+    // O autoSignIn: false resolveria, mas ele faz a lib responder e-mail repetido
+    // com um usuário falso (201), em vez de um erro.
+    if (token) {
+      const { internalAdapter } = await auth.$context
+      await internalAdapter.deleteSession(token)
+    }
 
     return User.restore({
       id: created.id,
