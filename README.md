@@ -162,14 +162,14 @@ Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opc
 
 Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.
 
-| Status | Quando                                                                       |
-| ------ | ---------------------------------------------------------------------------- |
-| 400    | Corpo fora do formato (`VALIDATION_ERROR`) ou JSON quebrado (`INVALID_JSON`) |
-| 401    | Sem sessão (`UNAUTHORIZED`)                                                  |
-| 404    | O registro não existe **ou é de outro usuário**                              |
-| 409    | Conflito (ex.: `EMAIL_ALREADY_IN_USE`, `CPF_ALREADY_IN_USE`)                 |
-| 422    | Regra de domínio (ex.: `INVALID_CPF`, `INVALID_BIRTH_DATE`)                  |
-| 500    | Erro inesperado (`INTERNAL_ERROR`), sempre em JSON                           |
+| Status | Quando                                                                                    |
+| ------ | ----------------------------------------------------------------------------------------- |
+| 400    | Corpo fora do formato (`VALIDATION_ERROR`) ou JSON quebrado (`INVALID_JSON`)              |
+| 401    | Sem sessão (`UNAUTHORIZED`)                                                               |
+| 404    | O registro não existe **ou é de outro usuário**, ou a rota não existe (`ROUTE_NOT_FOUND`) |
+| 409    | Conflito (ex.: `EMAIL_ALREADY_IN_USE`, `CPF_ALREADY_IN_USE`)                              |
+| 422    | Regra de domínio (ex.: `INVALID_CPF`, `INVALID_BIRTH_DATE`)                               |
+| 500    | Erro inesperado (`INTERNAL_ERROR`), sempre em JSON                                        |
 
 ## Decisões tomadas durante o desenvolvimento
 
