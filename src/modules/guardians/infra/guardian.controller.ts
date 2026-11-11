@@ -37,6 +37,12 @@ function toHttp(guardian: Guardian) {
   }
 }
 
+// A lista aparece em toda tela e não precisa do CPF inteiro.
+// O detalhe, o cadastro e a edição mostram o CPF inteiro, porque é ali que ele é usado.
+function toHttpListItem(guardian: Guardian) {
+  return { ...toHttp(guardian), cpf: guardian.cpf?.masked() ?? null }
+}
+
 export class GuardianController {
   constructor(
     private readonly createGuardian: CreateGuardian,
@@ -68,7 +74,7 @@ export class GuardianController {
       userId: res.locals.userId,
     })
 
-    return res.status(200).json(guardians.map(toHttp))
+    return res.status(200).json(guardians.map(toHttpListItem))
   }
 
   show = async (
