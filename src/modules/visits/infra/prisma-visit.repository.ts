@@ -14,6 +14,12 @@ import { VitalSigns } from '../domain/vital-signs.ts'
 // O atendimento sempre vem junto com o SOAP dele
 const WITH_SOAP = { soap: true }
 
+// Mais novo primeiro. Com o mesmo visitedAt, ganha o último cadastrado
+const NEWEST_FIRST = [
+  { visitedAt: 'desc' as const },
+  { createdAt: 'desc' as const },
+]
+
 export class PrismaVisitRepository implements VisitRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
@@ -54,7 +60,7 @@ export class PrismaVisitRepository implements VisitRepository {
     const rows = await this.prisma.visit.findMany({
       where: { patientId, userId },
       include: WITH_SOAP,
-      orderBy: { visitedAt: 'desc' },
+      orderBy: NEWEST_FIRST,
     })
     return rows.map((row) => this.toDomain(row))
   }
@@ -67,7 +73,7 @@ export class PrismaVisitRepository implements VisitRepository {
   ): Promise<RecentPatient[]> {
     const rows = await this.prisma.visit.findMany({
       where: { userId },
-      orderBy: { visitedAt: 'desc' },
+      orderBy: NEWEST_FIRST,
       distinct: ['patientId'],
       take: limit,
       select: {
@@ -100,7 +106,7 @@ export class PrismaVisitRepository implements VisitRepository {
         ],
       },
       include: WITH_SOAP,
-      orderBy: { visitedAt: 'desc' },
+      orderBy: NEWEST_FIRST,
     })
     return row ? this.toDomain(row) : null
   }
