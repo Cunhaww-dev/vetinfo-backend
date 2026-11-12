@@ -4,6 +4,7 @@ import type { DomainError } from '../../../shared/errors/domain-error.ts'
 import { Address, type AddressInput } from './address.ts'
 import { Cpf } from './cpf.ts'
 import { InvalidBirthDate } from './errors/invalid-birth-date.ts'
+import { Phone } from './phone.ts'
 
 type CreateGuardianInput = {
   userId: string
@@ -64,6 +65,9 @@ export class Guardian {
   static create(input: CreateGuardianInput): Either<DomainError, Guardian> {
     if (isInTheFuture(input.birthDate)) return left(new InvalidBirthDate())
 
+    const phone = Phone.create(input.phone)
+    if (phone.isLeft()) return left(phone.value)
+
     const cpf = toCpf(input.cpf)
     if (cpf.isLeft()) return left(cpf.value)
 
@@ -80,7 +84,7 @@ export class Guardian {
         randomUUID(),
         input.userId,
         input.name.trim(),
-        input.phone.trim(),
+        phone.value.value,
         input.email.trim().toLowerCase(),
         cpf.value,
         input.birthDate,
@@ -94,6 +98,12 @@ export class Guardian {
     const birthDate = changes.birthDate ?? this.birthDate
     if (isInTheFuture(birthDate)) return left(new InvalidBirthDate())
 
+    const phone: Either<DomainError, Phone> =
+      changes.phone === undefined
+        ? right(Phone.restore(this.phone))
+        : Phone.create(changes.phone)
+    if (phone.isLeft()) return left(phone.value)
+
     const cpf: Either<DomainError, Cpf | null> =
       changes.cpf === undefined ? right(this.cpf) : toCpf(changes.cpf)
     if (cpf.isLeft()) return left(cpf.value)
@@ -103,7 +113,7 @@ export class Guardian {
         this.id,
         this.userId,
         changes.name?.trim() ?? this.name,
-        changes.phone?.trim() ?? this.phone,
+        phone.value.value,
         changes.email?.trim().toLowerCase() ?? this.email,
         cpf.value,
         birthDate,
