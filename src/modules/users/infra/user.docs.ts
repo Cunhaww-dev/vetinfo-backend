@@ -31,7 +31,7 @@ export const userPaths: ZodOpenApiPathsObject = {
       operationId: 'registerUser',
       summary: 'Cadastra um veterinário',
       description:
-        '`professional` exige CRMV (ex.: `RJ54321`). `student` entra sem CRMV.',
+        '`professional` exige CRMV: UF + 1 a 6 números, com `S` no fim na inscrição secundária (ex.: `RJ54321`, `SP1234S`). `student` entra sem CRMV.',
       security: [],
       requestBody: {
         content: { 'application/json': { schema: registerUserSchema } },
