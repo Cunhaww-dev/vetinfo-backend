@@ -1,4 +1,4 @@
-import type { Patient } from './patient-entity.ts'
+import type { Patient, PatientBreed } from './patient-entity.ts'
 
 type ListPatientsFilters = {
   guardianId?: string | undefined
@@ -10,6 +10,6 @@ export interface PatientRepository {
   update(patient: Patient): Promise<void>
   findById(id: string, userId: string): Promise<Patient | null>
   listByUser(userId: string, filters: ListPatientsFilters): Promise<Patient[]>
-  breedExists(breedId: string): Promise<boolean>
+  findBreed(breedId: string): Promise<PatientBreed | null>
   guardianExists(guardianId: string, userId: string): Promise<boolean>
 }

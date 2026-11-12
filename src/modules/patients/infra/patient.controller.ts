@@ -18,7 +18,9 @@ function toHttp(patient: Patient) {
   return {
     id: patient.id,
     guardianId: patient.guardianId,
-    breedId: patient.breedId,
+    breedId: patient.breed.id,
+    breed: { id: patient.breed.id, name: patient.breed.name },
+    species: patient.breed.species,
     name: patient.name,
     sex: patient.sex,
     neutered: patient.neutered,

@@ -12,6 +12,9 @@ import {
   updatePatientSchema,
 } from '../patient.schema.ts'
 
+const nameRef = (example: string) =>
+  z.object({ id: uuid, name: z.string().meta({ example }) })
+
 const patientSchema = z
   .object({
     id: uuid,
@@ -19,6 +22,8 @@ const patientSchema = z
       .nullable()
       .meta({ description: 'null = sem tutor (ONG, resgate)' }),
     breedId: uuid,
+    breed: nameRef('Labrador'),
+    species: nameRef('Cão').meta({ description: 'Vem pela raça' }),
     name: z.string().meta({ example: 'Rex' }),
     sex: z.enum(['male', 'female']),
     neutered: z.boolean(),
