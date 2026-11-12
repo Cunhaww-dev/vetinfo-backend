@@ -140,6 +140,8 @@ Nome, telefone, e-mail e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O
 | GET    | `/patients/:patientId` | Mostra um paciente                                  |
 | PATCH  | `/patients/:patientId` | Muda qualquer campo, `null` apaga o campo           |
 
+A resposta traz a raça e a espécie com o nome (`breed` e `species`), além do `breedId`.
+
 ### Atendimentos e SOAP (`Visit`)
 
 | Método | Rota                                      | O que faz                                                          |

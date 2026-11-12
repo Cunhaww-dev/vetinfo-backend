@@ -23,8 +23,8 @@ export class RegisterPatient {
   async execute(
     input: RegisterPatientInput,
   ): Promise<Either<DomainError, Patient>> {
-    if (!(await this.patients.breedExists(input.breedId)))
-      return left(new BreedNotFound(input.breedId))
+    const breed = await this.patients.findBreed(input.breedId)
+    if (!breed) return left(new BreedNotFound(input.breedId))
 
     // O tutor precisa ser do mesmo usuário. Tutor de outro usuário = não existe
     if (
@@ -33,7 +33,7 @@ export class RegisterPatient {
     )
       return left(new GuardianNotFound(input.guardianId))
 
-    const result = Patient.create(input)
+    const result = Patient.create({ ...input, breed })
     if (result.isLeft()) return left(result.value)
 
     await this.patients.create(result.value)

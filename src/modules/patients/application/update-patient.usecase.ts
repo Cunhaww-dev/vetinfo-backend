@@ -9,7 +9,9 @@ import type {
 } from '../domain/patient-entity.ts'
 import type { PatientRepository } from '../domain/patient-repository.ts'
 
-type UpdatePatientInput = PatientChanges & {
+// A rota manda o breedId. O use case troca pela raça do catálogo.
+type UpdatePatientInput = Omit<PatientChanges, 'breed'> & {
+  breedId?: string | undefined
   userId: string
   patientId: string
 }
@@ -20,13 +22,13 @@ export class UpdatePatient {
   async execute(
     input: UpdatePatientInput,
   ): Promise<Either<DomainError, Patient>> {
-    const { userId, patientId, ...changes } = input
+    const { userId, patientId, breedId, ...changes } = input
 
     const patient = await this.patients.findById(patientId, userId)
     if (!patient) return left(new PatientNotFound(patientId))
 
-    if (changes.breedId && !(await this.patients.breedExists(changes.breedId)))
-      return left(new BreedNotFound(changes.breedId))
+    const breed = breedId ? await this.patients.findBreed(breedId) : undefined
+    if (breedId && !breed) return left(new BreedNotFound(breedId))
 
     if (
       changes.guardianId &&
@@ -34,7 +36,7 @@ export class UpdatePatient {
     )
       return left(new GuardianNotFound(changes.guardianId))
 
-    const result = patient.update(changes)
+    const result = patient.update({ ...changes, breed: breed ?? undefined })
     if (result.isLeft()) return left(result.value)
 
     await this.patients.update(result.value)

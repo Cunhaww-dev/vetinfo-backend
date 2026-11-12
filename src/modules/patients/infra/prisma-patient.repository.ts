@@ -2,8 +2,16 @@ import type {
   Patient as PatientRow,
   PrismaClient,
 } from '../../../generated/prisma/client.ts'
-import { Patient } from '../domain/patient-entity.ts'
+import { Patient, type PatientBreed } from '../domain/patient-entity.ts'
 import type { PatientRepository } from '../domain/patient-repository.ts'
+
+// O paciente sempre vem com a raça e a espécie, só o id e o nome
+const BREED_FIELDS = {
+  id: true,
+  name: true,
+  species: { select: { id: true, name: true } },
+}
+const WITH_BREED = { breed: { select: BREED_FIELDS } }
 
 export class PrismaPatientRepository implements PatientRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -22,7 +30,10 @@ export class PrismaPatientRepository implements PatientRepository {
   }
 
   async findById(id: string, userId: string): Promise<Patient | null> {
-    const row = await this.prisma.patient.findFirst({ where: { id, userId } })
+    const row = await this.prisma.patient.findFirst({
+      where: { id, userId },
+      include: WITH_BREED,
+    })
     return row ? this.toDomain(row) : null
   }
 
@@ -35,14 +46,17 @@ export class PrismaPatientRepository implements PatientRepository {
         userId,
         ...(filters.guardianId && { guardianId: filters.guardianId }),
       },
+      include: WITH_BREED,
       orderBy: { name: 'asc' },
     })
     return rows.map((row) => this.toDomain(row))
   }
 
-  async breedExists(breedId: string): Promise<boolean> {
-    const count = await this.prisma.breed.count({ where: { id: breedId } })
-    return count > 0
+  async findBreed(breedId: string): Promise<PatientBreed | null> {
+    return this.prisma.breed.findUnique({
+      where: { id: breedId },
+      select: BREED_FIELDS,
+    })
   }
 
   async guardianExists(guardianId: string, userId: string): Promise<boolean> {
@@ -56,7 +70,7 @@ export class PrismaPatientRepository implements PatientRepository {
   private toRow(patient: Patient) {
     return {
       guardianId: patient.guardianId,
-      breedId: patient.breedId,
+      breedId: patient.breed.id,
       name: patient.name,
       sex: patient.sex,
       neutered: patient.neutered,
@@ -66,12 +80,12 @@ export class PrismaPatientRepository implements PatientRepository {
     }
   }
 
-  private toDomain(row: PatientRow): Patient {
+  private toDomain(row: PatientRow & { breed: PatientBreed }): Patient {
     return Patient.restore({
       id: row.id,
       userId: row.userId,
       guardianId: row.guardianId,
-      breedId: row.breedId,
+      breed: row.breed,
       name: row.name,
       sex: row.sex,
       neutered: row.neutered,
