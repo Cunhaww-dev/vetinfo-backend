@@ -11,7 +11,7 @@ export const addressSchema = z.object({
   zipCode: z.string().trim().min(1, 'Zip code is required'),
 })
 
-// Só a forma. Os dígitos do CPF e a data no futuro são regra do domínio (Guardian).
+// Só a forma. O DDD, os dígitos do CPF e a data no futuro são regra do domínio (Guardian).
 const fields = {
   name: z.string().trim().min(3, 'Name must have at least 3 characters'),
   phone: z.string().trim().min(1, 'Phone is required'),
