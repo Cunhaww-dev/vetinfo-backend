@@ -24,7 +24,11 @@ type RestoreUserProps = {
   crmvActivatedAt: Date | null
 }
 
-const CRMV_FORMAT = /^[A-Z]{2}\d+$/
+// UF + 1 a 6 números (Resolução CFMV 1.475/2022). O "S" no fim é a inscrição secundária,
+// em outro estado. O zootecnista ("/Z") não entra: ele não é médico-veterinário.
+const UFS =
+  'AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO'
+const CRMV_FORMAT = new RegExp(`^(${UFS})\\d{1,6}S?$`)
 
 export class User {
   private constructor(
