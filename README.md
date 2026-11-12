@@ -133,6 +133,8 @@ Nome, telefone, e-mail e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O
 
 ### Pacientes (`Patient`)
 
+Nome, sexo, raça e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O nascimento não aceita `null` no `PATCH`.
+
 | Método | Rota                   | O que faz                                           |
 | ------ | ---------------------- | --------------------------------------------------- |
 | POST   | `/patients`            | Cria o paciente (o tutor é opcional)                |
