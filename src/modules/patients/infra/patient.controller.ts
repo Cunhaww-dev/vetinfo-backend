@@ -23,7 +23,7 @@ function toHttp(patient: Patient) {
     sex: patient.sex,
     neutered: patient.neutered,
     coatColor: patient.coatColor,
-    birthDate: patient.birthDate?.toISOString().slice(0, 10) ?? null,
+    birthDate: patient.birthDate.toISOString().slice(0, 10),
     microchip: patient.microchip,
     createdAt: patient.createdAt.toISOString(),
   }

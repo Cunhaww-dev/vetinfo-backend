@@ -161,7 +161,7 @@ model Patient {
   sex        PatientSex
   neutered   Boolean    @default(false)
   coatColor  String?    @map("coat_color")
-  birthDate  DateTime?  @map("birth_date") @db.Date
+  birthDate  DateTime   @map("birth_date") @db.Date
   microchip  String?
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")

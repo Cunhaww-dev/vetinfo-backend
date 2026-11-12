@@ -23,7 +23,7 @@ const patientSchema = z
     sex: z.enum(['male', 'female']),
     neutered: z.boolean(),
     coatColor: z.string().nullable().meta({ example: 'Caramelo' }),
-    birthDate: z.iso.date().nullable().meta({ example: '2020-05-31' }),
+    birthDate: z.iso.date().meta({ example: '2020-05-31' }),
     microchip: z.string().nullable(),
     createdAt: z.iso.datetime().meta({ description: 'Data do cadastro' }),
   })
@@ -91,7 +91,8 @@ export const patientPaths: ZodOpenApiPathsObject = {
       tags: ['Patients'],
       operationId: 'updatePatient',
       summary: 'Muda um paciente',
-      description: 'Campo ausente não muda. `null` apaga o campo.',
+      description:
+        'Campo ausente não muda. `null` apaga o campo. O nascimento não aceita `null`.',
       requestParams: patientParams,
       requestBody: {
         content: { 'application/json': { schema: updatePatientSchema } },

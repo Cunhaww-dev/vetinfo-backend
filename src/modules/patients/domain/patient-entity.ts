@@ -13,11 +13,11 @@ type CreatePatientInput = {
   sex: PatientSex
   neutered?: boolean | undefined
   coatColor?: string | null | undefined
-  birthDate?: Date | null | undefined
+  birthDate: Date
   microchip?: string | null | undefined
 }
 
-// undefined = não mexer no campo. null = apagar o campo.
+// undefined = não mexer no campo. null = apagar o campo (o nascimento não pode ser apagado).
 export type UpdatePatientInput = {
   guardianId?: string | null | undefined
   breedId?: string | undefined
@@ -25,7 +25,7 @@ export type UpdatePatientInput = {
   sex?: PatientSex | undefined
   neutered?: boolean | undefined
   coatColor?: string | null | undefined
-  birthDate?: Date | null | undefined
+  birthDate?: Date | undefined
   microchip?: string | null | undefined
 }
 
@@ -38,7 +38,7 @@ type RestorePatientProps = {
   sex: PatientSex
   neutered: boolean
   coatColor: string | null
-  birthDate: Date | null
+  birthDate: Date
   microchip: string | null
   createdAt: Date
 }
@@ -58,13 +58,13 @@ export class Patient {
     readonly sex: PatientSex,
     readonly neutered: boolean,
     readonly coatColor: string | null,
-    readonly birthDate: Date | null,
+    readonly birthDate: Date,
     readonly microchip: string | null,
     readonly createdAt: Date,
   ) {}
 
   static create(input: CreatePatientInput): Either<DomainError, Patient> {
-    const birthDate = input.birthDate ?? null
+    const { birthDate } = input
     if (isInTheFuture(birthDate)) return left(new InvalidBirthDate())
 
     return right(
@@ -85,8 +85,7 @@ export class Patient {
   }
 
   update(changes: UpdatePatientInput): Either<DomainError, Patient> {
-    const birthDate =
-      changes.birthDate === undefined ? this.birthDate : changes.birthDate
+    const birthDate = changes.birthDate ?? this.birthDate
     if (isInTheFuture(birthDate)) return left(new InvalidBirthDate())
 
     return right(
