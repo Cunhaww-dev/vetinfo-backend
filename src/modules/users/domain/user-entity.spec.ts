@@ -39,6 +39,19 @@ describe('User.activateCrmv', () => {
     expect(result.value).toMatchObject({ code: 'INVALID_CRMV_FORMAT' })
   })
 
+  it('aceita a inscrição secundária, com S no fim', () => {
+    expect(student().activateCrmv('rj1234s').isRight()).toBe(true)
+  })
+
+  it('recusa UF que não existe e número com mais de 6 dígitos', () => {
+    expect(student().activateCrmv('XX12345').isLeft()).toBe(true)
+    expect(student().activateCrmv('SP1234567').isLeft()).toBe(true)
+  })
+
+  it('recusa o CRMV de zootecnista', () => {
+    expect(student().activateCrmv('SP12345/Z').isLeft()).toBe(true)
+  })
+
   it('profissional não ativa de novo (sem volta)', () => {
     const professional = student().activateCrmv('SP12345').value as User
     const result = professional.activateCrmv('RJ999')
