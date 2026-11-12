@@ -12,4 +12,10 @@ export interface PatientRepository {
   listByUser(userId: string, filters: ListPatientsFilters): Promise<Patient[]>
   findBreed(breedId: string): Promise<PatientBreed | null>
   guardianExists(guardianId: string, userId: string): Promise<boolean>
+  // exceptId: na edição, o próprio paciente não conta
+  microchipInUse(
+    microchip: string,
+    userId: string,
+    exceptId?: string,
+  ): Promise<boolean>
 }

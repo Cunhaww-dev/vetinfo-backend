@@ -167,6 +167,8 @@ model Patient {
   updatedAt  DateTime   @updatedAt @map("updated_at")
   visits     Visit[]
 
+  // Único por usuário: o mesmo animal pode ter cadastro em 2 clínicas
+  @@unique([userId, microchip])
   @@index([userId])
   @@index([guardianId])
   @@map("patients")

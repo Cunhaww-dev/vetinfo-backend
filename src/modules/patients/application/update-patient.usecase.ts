@@ -2,6 +2,7 @@ import { type Either, left, right } from '../../../shared/either/either.ts'
 import type { DomainError } from '../../../shared/errors/domain-error.ts'
 import { GuardianNotFound } from '../../guardians/domain/errors/guardian-not-found.ts'
 import { BreedNotFound } from '../domain/errors/breed-not-found.ts'
+import { MicrochipAlreadyInUse } from '../domain/errors/microchip-already-in-use.ts'
 import { PatientNotFound } from '../domain/errors/patient-not-found.ts'
 import type {
   Patient,
@@ -38,6 +39,13 @@ export class UpdatePatient {
 
     const result = patient.update({ ...changes, breed: breed ?? undefined })
     if (result.isLeft()) return left(result.value)
+
+    const { microchip } = result.value
+    if (
+      microchip &&
+      (await this.patients.microchipInUse(microchip, userId, patientId))
+    )
+      return left(new MicrochipAlreadyInUse(microchip))
 
     await this.patients.update(result.value)
 

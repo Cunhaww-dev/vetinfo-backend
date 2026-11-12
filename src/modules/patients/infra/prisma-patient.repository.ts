@@ -66,6 +66,17 @@ export class PrismaPatientRepository implements PatientRepository {
     return count > 0
   }
 
+  async microchipInUse(
+    microchip: string,
+    userId: string,
+    exceptId?: string,
+  ): Promise<boolean> {
+    const count = await this.prisma.patient.count({
+      where: { microchip, userId, ...(exceptId && { NOT: { id: exceptId } }) },
+    })
+    return count > 0
+  }
+
   // Os campos que o usuário pode mudar. O id, o dono e o createdAt nunca mudam.
   private toRow(patient: Patient) {
     return {
