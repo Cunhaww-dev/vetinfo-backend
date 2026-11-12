@@ -9,7 +9,7 @@ const fields = {
   sex: z.enum(['male', 'female']),
   neutered: z.boolean().optional(),
   coatColor: z.string().trim().nullish(),
-  birthDate: z.iso.date('Birth date must be YYYY-MM-DD').nullish(),
+  birthDate: z.iso.date('Birth date must be YYYY-MM-DD'),
   microchip: z.string().trim().nullish(),
 }
 

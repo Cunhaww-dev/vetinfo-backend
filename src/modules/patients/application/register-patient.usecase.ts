@@ -13,7 +13,7 @@ type RegisterPatientInput = {
   sex: PatientSex
   neutered?: boolean | undefined
   coatColor?: string | null | undefined
-  birthDate?: Date | null | undefined
+  birthDate: Date
   microchip?: string | null | undefined
 }
 
