@@ -25,15 +25,19 @@ export class RegisterVisit {
   async execute(
     input: RegisterVisitInput,
   ): Promise<Either<DomainError, Visit>> {
-    if (!(await this.visits.patientExists(input.patientId, input.userId)))
-      return left(new PatientNotFound(input.patientId))
+    const patient = await this.visits.findPatient(input.patientId, input.userId)
+    if (!patient) return left(new PatientNotFound(input.patientId))
 
     // O snapshot: lê o tipo do autor no banco, agora, e copia para o atendimento.
     // Se o estudante virar profissional amanhã, este atendimento continua "student".
     const author = await this.users.findById(input.userId)
     if (!author) return left(new UserNotFound(input.userId))
 
-    const result = Visit.create({ ...input, authorType: author.type })
+    const result = Visit.create({
+      ...input,
+      authorType: author.type,
+      patientBirthDate: patient.birthDate,
+    })
     if (result.isLeft()) return left(result.value)
 
     await this.visits.create(result.value)

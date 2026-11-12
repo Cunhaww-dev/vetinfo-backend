@@ -7,6 +7,7 @@ import { Soap } from '../domain/soap.ts'
 import { Visit } from '../domain/visit-entity.ts'
 import type {
   RecentPatient,
+  VisitPatient,
   VisitRepository,
 } from '../domain/visit-repository.ts'
 import { VitalSigns } from '../domain/vital-signs.ts'
@@ -116,6 +117,15 @@ export class PrismaVisitRepository implements VisitRepository {
       where: { id: patientId, userId },
     })
     return count > 0
+  }
+  async findPatient(
+    patientId: string,
+    userId: string,
+  ): Promise<VisitPatient | null> {
+    return this.prisma.patient.findFirst({
+      where: { id: patientId, userId },
+      select: { birthDate: true },
+    })
   }
 
   // Os campos que o usuário pode mudar. O autor, o paciente e o snapshot nunca mudam.

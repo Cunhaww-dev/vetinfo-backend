@@ -7,6 +7,9 @@ export type RecentPatient = {
   patient: { id: string; name: string; breedId: string }
 }
 
+// Só o que o atendimento precisa saber do paciente
+export type VisitPatient = { birthDate: Date | null }
+
 // Toda busca recebe o userId. Um usuário nunca enxerga o atendimento de outro.
 export interface VisitRepository {
   create(visit: Visit): Promise<void>
@@ -18,5 +21,6 @@ export interface VisitRepository {
     userId: string,
   ): Promise<Visit | null>
   patientExists(patientId: string, userId: string): Promise<boolean>
+  findPatient(patientId: string, userId: string): Promise<VisitPatient | null>
   listRecentPatients(userId: string, limit: number): Promise<RecentPatient[]>
 }
