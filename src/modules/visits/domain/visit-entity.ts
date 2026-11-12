@@ -3,6 +3,7 @@ import { type Either, left, right } from '../../../shared/either/either.ts'
 import type { DomainError } from '../../../shared/errors/domain-error.ts'
 import type { UserType } from '../../users/domain/user-entity.ts'
 import { InvalidVisitDate } from './errors/invalid-visit-date.ts'
+import { VisitBeforeBirth } from './errors/visit-before-birth.ts'
 import { Soap, type SoapInput } from './soap.ts'
 import { VitalSigns, type VitalSignsInput } from './vital-signs.ts'
 
@@ -10,6 +11,7 @@ type CreateVisitInput = {
   userId: string
   patientId: string
   authorType: UserType
+  patientBirthDate: Date | null
   visitedAt?: Date | undefined
   vitalSigns?: VitalSignsInput | undefined
   soap?: SoapInput | undefined
@@ -37,6 +39,11 @@ function isInTheFuture(date: Date): boolean {
   return date.getTime() > Date.now()
 }
 
+// Sem nascimento cadastrado, não tem como conferir
+function isBeforeBirth(visitedAt: Date, birthDate: Date | null): boolean {
+  return birthDate !== null && visitedAt.getTime() < birthDate.getTime()
+}
+
 // Atendimento. Todo atendimento tem exatamente um SOAP (DER, regra 5).
 export class Visit {
   private constructor(
@@ -53,6 +60,8 @@ export class Visit {
   static create(input: CreateVisitInput): Either<DomainError, Visit> {
     const visitedAt = input.visitedAt ?? new Date()
     if (isInTheFuture(visitedAt)) return left(new InvalidVisitDate())
+    if (isBeforeBirth(visitedAt, input.patientBirthDate))
+      return left(new VisitBeforeBirth())
 
     const vitalSigns = VitalSigns.create(input.vitalSigns)
     if (vitalSigns.isLeft()) return left(vitalSigns.value)
@@ -71,9 +80,16 @@ export class Visit {
     )
   }
 
-  update(changes: UpdateVisitInput): Either<DomainError, Visit> {
+  update(
+    changes: UpdateVisitInput,
+    patientBirthDate: Date | null,
+  ): Either<DomainError, Visit> {
     const visitedAt = changes.visitedAt ?? this.visitedAt
     if (isInTheFuture(visitedAt)) return left(new InvalidVisitDate())
+
+    // Só confere quando a data muda. Editar o SOAP de um atendimento antigo sempre funciona
+    if (changes.visitedAt && isBeforeBirth(visitedAt, patientBirthDate))
+      return left(new VisitBeforeBirth())
 
     const vitalSigns: Either<DomainError, VitalSigns> = changes.vitalSigns
       ? this.vitalSigns.change(changes.vitalSigns)

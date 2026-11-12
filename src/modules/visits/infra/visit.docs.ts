@@ -75,7 +75,7 @@ const visitNotFound = error(
   'Atendimento não existe ou é de outro usuário (VISIT_NOT_FOUND)',
 )
 const invalidVisit = error(
-  'Data no futuro (INVALID_VISIT_DATE) ou sinal vital fora da faixa (INVALID_VITAL_SIGNS)',
+  'Data no futuro (INVALID_VISIT_DATE), antes do nascimento do paciente (VISIT_BEFORE_BIRTH) ou sinal vital fora da faixa (INVALID_VITAL_SIGNS)',
 )
 
 export const visitPaths: ZodOpenApiPathsObject = {
