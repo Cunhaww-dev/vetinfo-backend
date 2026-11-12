@@ -2,6 +2,7 @@ import { type Either, left, right } from '../../../shared/either/either.ts'
 import type { DomainError } from '../../../shared/errors/domain-error.ts'
 import { GuardianNotFound } from '../../guardians/domain/errors/guardian-not-found.ts'
 import { BreedNotFound } from '../domain/errors/breed-not-found.ts'
+import { MicrochipAlreadyInUse } from '../domain/errors/microchip-already-in-use.ts'
 import { Patient, type PatientSex } from '../domain/patient-entity.ts'
 import type { PatientRepository } from '../domain/patient-repository.ts'
 
@@ -35,6 +36,14 @@ export class RegisterPatient {
 
     const result = Patient.create(input)
     if (result.isLeft()) return left(result.value)
+
+    // O microchip já vem sem espaço da entidade
+    const { microchip } = result.value
+    if (
+      microchip &&
+      (await this.patients.microchipInUse(microchip, input.userId))
+    )
+      return left(new MicrochipAlreadyInUse(microchip))
 
     await this.patients.create(result.value)
 

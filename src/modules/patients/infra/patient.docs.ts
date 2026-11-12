@@ -36,6 +36,9 @@ const notFound = error(
 const breedOrGuardianNotFound = error(
   'Raça não existe (BREED_NOT_FOUND) ou tutor não existe (GUARDIAN_NOT_FOUND)',
 )
+const microchipInUse = error(
+  'Outro paciente deste usuário já tem o microchip (MICROCHIP_ALREADY_IN_USE)',
+)
 const invalidBirthDate = error(
   'Data de nascimento no futuro (INVALID_BIRTH_DATE)',
 )
@@ -55,6 +58,7 @@ export const patientPaths: ZodOpenApiPathsObject = {
         '400': badRequest,
         '401': unauthorized,
         '404': breedOrGuardianNotFound,
+        '409': microchipInUse,
         '422': invalidBirthDate,
       },
     },
@@ -103,6 +107,7 @@ export const patientPaths: ZodOpenApiPathsObject = {
         '404': error(
           'Paciente, raça ou tutor não existe (PATIENT_NOT_FOUND, BREED_NOT_FOUND, GUARDIAN_NOT_FOUND)',
         ),
+        '409': microchipInUse,
         '422': invalidBirthDate,
       },
     },
