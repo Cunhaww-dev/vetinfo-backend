@@ -129,7 +129,7 @@ O token da sessão **nunca** vem no corpo da resposta, só no cookie `httpOnly`.
 | PATCH  | `/guardians/:guardianId`         | Muda os dados do tutor                   |
 | PUT    | `/guardians/:guardianId/address` | Muda o endereço, o antigo vira histórico |
 
-Nome, telefone, e-mail e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O CPF é opcional: a API aceita com máscara (`529.982.247-25`), valida os dígitos verificadores e guarda só os 11 números. O mesmo CPF não pode repetir entre os tutores de um usuário (`CPF_ALREADY_IN_USE`). Na lista (`GET /guardians`), o CPF vem mascarado (`***.982.247-**`), por minimização de dados (LGPD). O detalhe, o cadastro e a edição mostram o CPF inteiro.
+Nome, telefone, e-mail e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O telefone aceita máscara (`(21) 99999-0000`), precisa de 10 ou 11 números com um DDD que existe (`INVALID_PHONE`) e fica guardado só com os números. O CPF é opcional: a API aceita com máscara (`529.982.247-25`), valida os dígitos verificadores e guarda só os 11 números. O mesmo CPF não pode repetir entre os tutores de um usuário (`CPF_ALREADY_IN_USE`). Na lista (`GET /guardians`), o CPF vem mascarado (`***.982.247-**`), por minimização de dados (LGPD). O detalhe, o cadastro e a edição mostram o CPF inteiro.
 
 ### Pacientes (`Patient`)
 
