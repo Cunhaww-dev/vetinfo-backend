@@ -118,6 +118,7 @@ export class PrismaVisitRepository implements VisitRepository {
           { temperatureC: { not: null } },
           { heartRate: { not: null } },
           { respiratoryRate: { not: null } },
+          { bodyConditionScore: { not: null } },
         ],
       },
       include: WITH_SOAP,
@@ -150,6 +151,7 @@ export class PrismaVisitRepository implements VisitRepository {
       temperatureC: visit.vitalSigns.temperatureC,
       heartRate: visit.vitalSigns.heartRate,
       respiratoryRate: visit.vitalSigns.respiratoryRate,
+      bodyConditionScore: visit.vitalSigns.bodyConditionScore,
     }
   }
 
@@ -174,6 +176,7 @@ export class PrismaVisitRepository implements VisitRepository {
         temperatureC: row.temperatureC,
         heartRate: row.heartRate,
         respiratoryRate: row.respiratoryRate,
+        bodyConditionScore: row.bodyConditionScore,
       }),
       // O create sempre grava o SOAP. O Soap.create() só cobre uma linha criada fora da API.
       soap: row.soap ? Soap.restore(row.soap) : Soap.create(),
