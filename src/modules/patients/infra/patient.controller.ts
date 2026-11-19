@@ -1,5 +1,9 @@
 import type { Request, Response } from 'express'
 import type { AuthLocals } from '../../../shared/http/ensure-authenticated.middleware.ts'
+import { sendFile } from '../../../shared/http/send-file.ts'
+import type { ChangePatientPhoto } from '../application/change-patient-photo.usecase.ts'
+import type { GetPatientPhoto } from '../application/get-patient-photo.usecase.ts'
+import type { RemovePatientPhoto } from '../application/remove-patient-photo.usecase.ts'
 import type { GetPatient } from '../application/get-patient.usecase.ts'
 import type { ListPatients } from '../application/list-patients.usecase.ts'
 import type { RegisterPatient } from '../application/register-patient.usecase.ts'
@@ -27,6 +31,10 @@ function toHttp(patient: Patient) {
     coatColor: patient.coatColor,
     birthDate: patient.birthDate.toISOString().slice(0, 10),
     microchip: patient.microchip,
+    // O "v" muda a cada foto nova, então o navegador não mostra a antiga do cache
+    photoUrl: patient.photoKey
+      ? `/patients/${patient.id}/photo?v=${patient.photoKey.split('-').pop()}`
+      : null,
     createdAt: patient.createdAt.toISOString(),
   }
 }
@@ -37,6 +45,9 @@ export class PatientController {
     private readonly listPatients: ListPatients,
     private readonly getPatient: GetPatient,
     private readonly updatePatient: UpdatePatient,
+    private readonly changePatientPhoto: ChangePatientPhoto,
+    private readonly getPatientPhoto: GetPatientPhoto,
+    private readonly removePatientPhoto: RemovePatientPhoto,
   ) {}
 
   register = async (req: Request, res: Response<unknown, AuthLocals>) => {
@@ -81,6 +92,49 @@ export class PatientController {
     const result = await this.updatePatient.execute({
       ...req.body,
       birthDate: toDate(req.body.birthDate),
+      userId: res.locals.userId,
+      patientId: req.params.patientId,
+    })
+    if (result.isLeft()) throw result.value
+
+    return res.status(200).json(toHttp(result.value))
+  }
+
+  changePhoto = async (
+    req: Request<PatientParams>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    // O uploadFile garante o req.file antes de chegar aqui
+    const file = req.file as Express.Multer.File
+
+    const result = await this.changePatientPhoto.execute({
+      userId: res.locals.userId,
+      patientId: req.params.patientId,
+      content: file.buffer,
+    })
+    if (result.isLeft()) throw result.value
+
+    return res.status(200).json(toHttp(result.value))
+  }
+
+  photo = async (
+    req: Request<PatientParams>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    const result = await this.getPatientPhoto.execute({
+      userId: res.locals.userId,
+      patientId: req.params.patientId,
+    })
+    if (result.isLeft()) throw result.value
+
+    return sendFile(res, { name: 'foto', ...result.value })
+  }
+
+  removePhoto = async (
+    req: Request<PatientParams>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    const result = await this.removePatientPhoto.execute({
       userId: res.locals.userId,
       patientId: req.params.patientId,
     })

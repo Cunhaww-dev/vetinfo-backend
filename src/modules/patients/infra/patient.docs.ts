@@ -30,6 +30,10 @@ const patientSchema = z
     coatColor: z.string().nullable().meta({ example: 'Caramelo' }),
     birthDate: z.iso.date().meta({ example: '2020-05-31' }),
     microchip: z.string().nullable(),
+    photoUrl: z.string().nullable().meta({
+      example: '/patients/8641c516-3785-4f9f-bb2d-5a74479ce583/photo?v=1f2e3d',
+      description: 'Rota da foto (pede a sessão). null = sem foto',
+    }),
     createdAt: z.iso.datetime().meta({ description: 'Data do cadastro' }),
   })
   .meta({ id: 'Patient' })
@@ -115,6 +119,60 @@ export const patientPaths: ZodOpenApiPathsObject = {
         ),
         '409': microchipInUse,
         '422': invalidBirthDate,
+      },
+    },
+  },
+  '/patients/{patientId}/photo': {
+    put: {
+      tags: ['Patients'],
+      operationId: 'changePatientPhoto',
+      summary: 'Envia ou troca a foto do paciente',
+      description:
+        'Corpo em `multipart/form-data`, com a imagem no campo `file`. JPEG, PNG ou WEBP, até 5 MB. A foto antiga é apagada.',
+      requestParams: patientParams,
+      requestBody: {
+        content: {
+          'multipart/form-data': {
+            schema: z.object({ file: z.string().meta({ format: 'binary' }) }),
+          },
+        },
+      },
+      responses: {
+        '200': json('O paciente com o photoUrl novo', patientSchema),
+        '400': error('Sem arquivo no campo file (FILE_REQUIRED)'),
+        '401': unauthorized,
+        '404': notFound,
+        '413': error('Imagem maior que 5 MB (FILE_TOO_LARGE)'),
+        '422': error('Não é JPEG, PNG nem WEBP (INVALID_PHOTO_TYPE)'),
+      },
+    },
+    get: {
+      tags: ['Patients'],
+      operationId: 'getPatientPhoto',
+      summary: 'Mostra a foto do paciente',
+      requestParams: patientParams,
+      responses: {
+        '200': {
+          description: 'A imagem',
+          content: {
+            'image/*': { schema: z.string().meta({ format: 'binary' }) },
+          },
+        },
+        '401': unauthorized,
+        '404': error(
+          'Paciente não existe (PATIENT_NOT_FOUND) ou não tem foto (PHOTO_NOT_FOUND)',
+        ),
+      },
+    },
+    delete: {
+      tags: ['Patients'],
+      operationId: 'removePatientPhoto',
+      summary: 'Apaga a foto do paciente',
+      requestParams: patientParams,
+      responses: {
+        '200': json('O paciente sem foto', patientSchema),
+        '401': unauthorized,
+        '404': notFound,
       },
     },
   },

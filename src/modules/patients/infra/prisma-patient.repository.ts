@@ -93,6 +93,7 @@ export class PrismaPatientRepository implements PatientRepository {
       coatColor: patient.coatColor,
       birthDate: patient.birthDate,
       microchip: patient.microchip,
+      photoKey: patient.photoKey,
     }
   }
 
@@ -109,6 +110,7 @@ export class PrismaPatientRepository implements PatientRepository {
       birthDate: row.birthDate,
       microchip: row.microchip,
       createdAt: row.createdAt,
+      photoKey: row.photoKey,
     })
   }
 }
