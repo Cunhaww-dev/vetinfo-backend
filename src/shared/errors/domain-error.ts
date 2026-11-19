@@ -1,5 +1,6 @@
 // O tipo diz que espécie de erro é, sem falar de HTTP. Quem traduz o tipo em status é o error handler, na infra.
-export type DomainErrorType = 'invalid' | 'not_found' | 'conflict'
+// gone = existiu, mas não vale mais (ex.: código de compartilhamento vencido)
+export type DomainErrorType = 'invalid' | 'not_found' | 'conflict' | 'gone'
 
 export abstract class DomainError {
   // Abstract para não criarmos um erro genérico a partir dela, impossível realizar um new DomainError('mensagem de erro') diretamente, apenas estendendo ela
