@@ -8,6 +8,7 @@ import { catalogRouter } from './modules/catalog/infra/catalog.routes.ts'
 import { guardianRouter } from './modules/guardians/infra/guardian.routes.ts'
 import { patientRouter } from './modules/patients/infra/patient.routes.ts'
 import { visitRouter } from './modules/visits/infra/visit.routes.ts'
+import { vaccineRouter } from './modules/vaccines/infra/vaccine.routes.ts'
 import { medicationRouter } from './modules/medications/infra/medication.routes.ts'
 import { errorHandler } from './shared/http/error-handler.middleware.ts'
 import { routeNotFound } from './shared/http/route-not-found.middleware.ts'
@@ -23,6 +24,7 @@ app.use(userRouter)
 app.use(catalogRouter)
 app.use(guardianRouter)
 app.use(medicationRouter)
+app.use(vaccineRouter)
 app.use(visitRouter) // Antes do patientRouter: as rotas /patients/:patientId/visits são dele
 app.use(patientRouter)
 app.use(routeNotFound) // Nenhuma rota acima respondeu
