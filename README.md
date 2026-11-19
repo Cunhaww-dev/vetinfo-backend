@@ -215,6 +215,16 @@ O arquivo vai no campo `file`, junto com `typeId` e `description`. Aceita PDF, J
 
 **Storage:** com `STORAGE_DRIVER=local` (padrão), os arquivos ficam na pasta `uploads/`, fora do git. Com `STORAGE_DRIVER=r2`, eles vão para um bucket privado do Cloudflare R2 (variáveis `R2_*` no `.env.example`). Nos dois casos, o arquivo só sai pela API, depois de conferir o dono.
 
+### Consentimento do tutor (`GuardianConsent`)
+
+| Método | Rota                            | O que faz                                     |
+| ------ | ------------------------------- | --------------------------------------------- |
+| POST   | `/patients/:patientId/consents` | Registra que o tutor atual aceitou o termo    |
+| GET    | `/patients/:patientId/consents` | Histórico, com os revogados (rastreabilidade) |
+| POST   | `/consents/:consentId/revoke`   | Revoga o consentimento. Sem volta             |
+
+O consentimento autoriza o compartilhamento do paciente para estudo (estudante ou outro profissional). Ele tem peso legal, então nunca é apagado nem editado: revogar só preenche o `revokedAt`, e o tutor assina um novo se mudar de ideia. Só existe um consentimento ativo por tutor e paciente (índice único parcial no banco). Só vale o consentimento do **tutor atual** do paciente: paciente sem tutor não tem como dar consentimento (`PATIENT_WITHOUT_GUARDIAN`).
+
 ### Erros
 
 Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.

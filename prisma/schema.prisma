@@ -18,16 +18,16 @@ enum UserType {
 }
 
 model User {
-  id              String       @id @default(uuid())
+  id              String            @id @default(uuid())
   name            String
-  email           String       @unique
-  emailVerified   Boolean      @default(false) @map("email_verified")
+  email           String            @unique
+  emailVerified   Boolean           @default(false) @map("email_verified")
   image           String?
   type            UserType
   crmv            String?
-  crmvActivatedAt DateTime?    @map("crmv_activated_at")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
+  crmvActivatedAt DateTime?         @map("crmv_activated_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
   sessions        Session[]
   accounts        Account[]
   guardians       Guardian[]
@@ -36,6 +36,7 @@ model User {
   medications     Medication[]
   vaccines        Vaccine[]
   attachments     Attachment[]
+  consents        GuardianConsent[]
 
   @@map("users")
 }
@@ -126,6 +127,7 @@ model Guardian {
   updatedAt DateTime          @updatedAt @map("updated_at")
   addresses GuardianAddress[]
   patients  Patient[]
+  consents  GuardianConsent[]
 
   // O mesmo CPF não repete entre os tutores de um usuário. O Postgres aceita vários NULL.
   @@unique([userId, cpf])
@@ -153,24 +155,25 @@ model GuardianAddress {
 }
 
 model Patient {
-  id         String     @id @default(uuid())
-  userId     String     @map("user_id")
-  user       User       @relation(fields: [userId], references: [id], onDelete: Restrict)
-  guardianId String?    @map("guardian_id")
-  guardian   Guardian?  @relation(fields: [guardianId], references: [id], onDelete: SetNull)
-  breedId    String     @map("breed_id")
-  breed      Breed      @relation(fields: [breedId], references: [id], onDelete: Restrict)
+  id         String            @id @default(uuid())
+  userId     String            @map("user_id")
+  user       User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  guardianId String?           @map("guardian_id")
+  guardian   Guardian?         @relation(fields: [guardianId], references: [id], onDelete: SetNull)
+  breedId    String            @map("breed_id")
+  breed      Breed             @relation(fields: [breedId], references: [id], onDelete: Restrict)
   name       String
   sex        PatientSex
-  neutered   Boolean    @default(false)
-  coatColor  String?    @map("coat_color")
-  birthDate  DateTime   @map("birth_date") @db.Date
+  neutered   Boolean           @default(false)
+  coatColor  String?           @map("coat_color")
+  birthDate  DateTime          @map("birth_date") @db.Date
   microchip  String?
-  photoKey   String?    @map("photo_key")
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @updatedAt @map("updated_at")
+  photoKey   String?           @map("photo_key")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
   visits     Visit[]
   vaccines   Vaccine[]
+  consents   GuardianConsent[]
 
   // Único por usuário: o mesmo animal pode ter cadastro em 2 clínicas
   @@unique([userId, microchip])
@@ -310,4 +313,25 @@ model Attachment {
   @@index([userId])
   @@index([visitId])
   @@map("attachments")
+}
+
+// Autorização do tutor para compartilhar o paciente com terceiros (estudo).
+// Tem peso legal: nunca é apagada. Revogar só preenche o revokedAt.
+model GuardianConsent {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  guardianId  String    @map("guardian_id")
+  guardian    Guardian  @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  patientId   String    @map("patient_id")
+  patient     Patient   @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  termVersion String    @map("term_version")
+  acceptedAt  DateTime  @map("accepted_at")
+  revokedAt   DateTime? @map("revoked_at")
+  notes       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([patientId])
+  @@map("guardian_consents")
 }
