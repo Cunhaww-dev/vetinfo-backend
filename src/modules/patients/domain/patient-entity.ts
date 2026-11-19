@@ -47,6 +47,7 @@ type RestorePatientProps = {
   coatColor: string | null
   birthDate: Date
   microchip: string | null
+  photoKey: string | null
   createdAt: Date
 }
 
@@ -68,6 +69,7 @@ export class Patient {
     readonly birthDate: Date,
     readonly microchip: string | null,
     readonly createdAt: Date,
+    readonly photoKey: string | null, // onde a foto está no storage. null = sem foto
   ) {}
 
   static create(input: CreatePatientInput): Either<DomainError, Patient> {
@@ -87,6 +89,7 @@ export class Patient {
         birthDate,
         input.microchip?.trim() || null,
         new Date(),
+        null,
       ),
     )
   }
@@ -112,6 +115,7 @@ export class Patient {
           ? this.microchip
           : changes.microchip?.trim() || null,
         this.createdAt,
+        this.photoKey,
       ),
     )
   }
@@ -129,6 +133,12 @@ export class Patient {
       props.birthDate,
       props.microchip,
       props.createdAt,
+      props.photoKey,
     )
+  }
+
+  // A foto é atributo do cadastro, e não anexo clínico (DER, regra 4.2)
+  changePhoto(photoKey: string | null): Patient {
+    return Patient.restore({ ...this, photoKey })
   }
 }

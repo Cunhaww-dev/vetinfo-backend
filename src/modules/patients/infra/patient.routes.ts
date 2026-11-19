@@ -1,7 +1,12 @@
 import { Router } from 'express'
 import { ensureAuthenticated } from '../../../shared/http/ensure-authenticated.middleware.ts'
+import { uploadFile } from '../../../shared/http/upload-file.middleware.ts'
 import { validateBody } from '../../../shared/http/validate-body.middleware.ts'
 import { prisma } from '../../../shared/prisma/client.ts'
+import { fileStorage } from '../../../shared/storage/storage.ts'
+import { ChangePatientPhoto } from '../application/change-patient-photo.usecase.ts'
+import { GetPatientPhoto } from '../application/get-patient-photo.usecase.ts'
+import { RemovePatientPhoto } from '../application/remove-patient-photo.usecase.ts'
 import { GetPatient } from '../application/get-patient.usecase.ts'
 import { ListPatients } from '../application/list-patients.usecase.ts'
 import { RegisterPatient } from '../application/register-patient.usecase.ts'
@@ -13,6 +18,8 @@ import {
 import { PatientController } from './patient.controller.ts'
 import { PrismaPatientRepository } from './prisma-patient.repository.ts'
 
+export const MAX_PHOTO_SIZE_MB = 5
+
 const patientRepository = new PrismaPatientRepository(prisma)
 
 const controller = new PatientController(
@@ -20,6 +27,9 @@ const controller = new PatientController(
   new ListPatients(patientRepository),
   new GetPatient(patientRepository),
   new UpdatePatient(patientRepository),
+  new ChangePatientPhoto(patientRepository, fileStorage),
+  new GetPatientPhoto(patientRepository, fileStorage),
+  new RemovePatientPhoto(patientRepository, fileStorage),
 )
 
 export const patientRouter = Router()
@@ -39,3 +49,10 @@ patientRouter.patch(
   validateBody(updatePatientSchema),
   controller.update,
 )
+patientRouter.put(
+  '/patients/:patientId/photo',
+  uploadFile(MAX_PHOTO_SIZE_MB),
+  controller.changePhoto,
+)
+patientRouter.get('/patients/:patientId/photo', controller.photo)
+patientRouter.delete('/patients/:patientId/photo', controller.removePhoto)
