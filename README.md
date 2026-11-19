@@ -187,6 +187,18 @@ Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opc
 
 A medicação nasce no atendimento e não tem `patientId`: o histórico sai de `Paciente → Atendimento → Medicação`. Sem `startDate`, ela começa no dia do atendimento. O campo `active` é calculado: ela está ativa enquanto não passa do `endDate`. A via (`route`) é uma lista fechada: `oral`, `topical`, `subcutaneous`, `intramuscular`, `intravenous`, `ophthalmic`, `otic`, `rectal`, `inhalation` e `other`.
 
+### Vacinas (`Vaccine`)
+
+| Método | Rota                            | O que faz                                                    |
+| ------ | ------------------------------- | ------------------------------------------------------------ |
+| POST   | `/patients/:patientId/vaccines` | Registra a vacina (o `visitId` é opcional)                   |
+| GET    | `/patients/:patientId/vaccines` | Histórico vacinal do paciente                                |
+| GET    | `/visits/:visitId/vaccines`     | Vacinas aplicadas no atendimento                             |
+| GET    | `/vaccines/due?days=30`         | Próximas doses e doses atrasadas (lembrete), de 1 a 365 dias |
+| PATCH  | `/vaccines/:vaccineId`          | Muda a vacina. O paciente e o atendimento nunca mudam        |
+
+A vacina aponta para o paciente, e o atendimento é opcional: uma vacina de antes do paciente entrar no sistema entra sem atendimento. A aplicação não pode ser no futuro nem antes do nascimento, e a próxima dose vem depois da aplicação (`INVALID_VACCINE_DATES`). No lembrete, uma dose sai da lista quando o paciente toma a mesma vacina (mesmo nome) depois.
+
 ### Erros
 
 Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.
