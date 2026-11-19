@@ -37,6 +37,7 @@ model User {
   vaccines        Vaccine[]
   attachments     Attachment[]
   consents        GuardianConsent[]
+  shares          Share[]
 
   @@map("users")
 }
@@ -128,6 +129,7 @@ model Guardian {
   addresses GuardianAddress[]
   patients  Patient[]
   consents  GuardianConsent[]
+  shares    Share[]
 
   // O mesmo CPF não repete entre os tutores de um usuário. O Postgres aceita vários NULL.
   @@unique([userId, cpf])
@@ -174,6 +176,7 @@ model Patient {
   visits     Visit[]
   vaccines   Vaccine[]
   consents   GuardianConsent[]
+  shareItems ShareItem[]
 
   // Único por usuário: o mesmo animal pode ter cadastro em 2 clínicas
   @@unique([userId, microchip])
@@ -334,4 +337,56 @@ model GuardianConsent {
   @@index([userId])
   @@index([patientId])
   @@map("guardian_consents")
+}
+
+enum ShareType {
+  guardian // o tutor vê o próprio animal
+  third_party // estudante ou outro profissional. Exige consentimento do tutor
+}
+
+// Código de acesso somente leitura, criado pelo veterinário.
+// Revogar só preenche o revokedAt. O limite de usos é contado em ShareUse.
+model Share {
+  id            String      @id @default(uuid())
+  userId        String      @map("user_id")
+  user          User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  type          ShareType
+  // Só no tipo guardian: o tutor que recebe o código
+  guardianId    String?     @map("guardian_id")
+  guardian      Guardian?   @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  code          String      @unique
+  recipientName String?     @map("recipient_name")
+  expiresAt     DateTime    @map("expires_at")
+  maxUses       Int?        @map("max_uses")
+  revokedAt     DateTime?   @map("revoked_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  items         ShareItem[]
+  uses          ShareUse[]
+
+  @@index([userId])
+  @@map("shares")
+}
+
+// N:N entre compartilhamento e paciente
+model ShareItem {
+  shareId   String  @map("share_id")
+  share     Share   @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  patientId String  @map("patient_id")
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Restrict)
+
+  @@id([shareId, patientId])
+  @@map("share_items")
+}
+
+// Cada acesso pelo código. Serve para o limite de usos e para a auditoria.
+model ShareUse {
+  id        String   @id @default(uuid())
+  shareId   String   @map("share_id")
+  share     Share    @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  usedAt    DateTime @default(now()) @map("used_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+
+  @@index([shareId])
+  @@map("share_uses")
 }

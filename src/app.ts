@@ -8,6 +8,7 @@ import { catalogRouter } from './modules/catalog/infra/catalog.routes.ts'
 import { guardianRouter } from './modules/guardians/infra/guardian.routes.ts'
 import { patientRouter } from './modules/patients/infra/patient.routes.ts'
 import { visitRouter } from './modules/visits/infra/visit.routes.ts'
+import { shareRouter } from './modules/shares/infra/share.routes.ts'
 import { consentRouter } from './modules/consents/infra/consent.routes.ts'
 import { attachmentRouter } from './modules/attachments/infra/attachment.routes.ts'
 import { vaccineRouter } from './modules/vaccines/infra/vaccine.routes.ts'
@@ -29,6 +30,7 @@ app.use(medicationRouter)
 app.use(vaccineRouter)
 app.use(attachmentRouter)
 app.use(consentRouter)
+app.use(shareRouter)
 app.use(visitRouter) // Antes do patientRouter: as rotas /patients/:patientId/visits são dele
 app.use(patientRouter)
 app.use(routeNotFound) // Nenhuma rota acima respondeu
