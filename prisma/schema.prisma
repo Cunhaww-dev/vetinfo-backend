@@ -34,6 +34,7 @@ model User {
   patients        Patient[]
   visits          Visit[]
   medications     Medication[]
+  vaccines        Vaccine[]
 
   @@map("users")
 }
@@ -167,6 +168,7 @@ model Patient {
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
   visits     Visit[]
+  vaccines   Vaccine[]
 
   // Único por usuário: o mesmo animal pode ter cadastro em 2 clínicas
   @@unique([userId, microchip])
@@ -195,6 +197,7 @@ model Visit {
   updatedAt          DateTime     @updatedAt @map("updated_at")
   soap               VisitSoap?
   medications        Medication[]
+  vaccines           Vaccine[]
 
   @@index([userId])
   @@index([patientId, visitedAt])
@@ -248,4 +251,29 @@ model Medication {
   @@index([userId])
   @@index([visitId])
   @@map("medications")
+}
+
+// Vacina aplicada. O atendimento é opcional: uma vacina antiga, de antes do paciente
+// entrar no sistema, entra sem atendimento. Por isso ela aponta direto para o paciente.
+model Vaccine {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  patientId    String    @map("patient_id")
+  patient      Patient   @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  visitId      String?   @map("visit_id")
+  visit        Visit?    @relation(fields: [visitId], references: [id], onDelete: Restrict)
+  name         String
+  appliedAt    DateTime  @map("applied_at") @db.Date
+  nextDoseAt   DateTime? @map("next_dose_at") @db.Date
+  manufacturer String?
+  batch        String?
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, nextDoseAt])
+  @@index([patientId])
+  @@index([visitId])
+  @@map("vaccines")
 }
