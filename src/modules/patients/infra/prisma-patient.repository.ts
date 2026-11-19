@@ -18,7 +18,12 @@ export class PrismaPatientRepository implements PatientRepository {
 
   async create(patient: Patient): Promise<void> {
     await this.prisma.patient.create({
-      data: { ...this.toRow(patient), id: patient.id, userId: patient.userId },
+      data: {
+        ...this.toRow(patient),
+        id: patient.id,
+        userId: patient.userId,
+        createdAt: patient.createdAt, // a mesma data que a resposta mostra
+      },
     })
   }
 
