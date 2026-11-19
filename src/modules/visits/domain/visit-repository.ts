@@ -4,7 +4,12 @@ import type { Visit } from './visit-entity.ts'
 export type RecentPatient = {
   visitId: string
   visitedAt: Date
-  patient: { id: string; name: string; breedId: string }
+  patient: {
+    id: string
+    name: string
+    breedId: string
+    species: { id: string; name: string }
+  }
 }
 
 // Só o que o atendimento precisa saber do paciente

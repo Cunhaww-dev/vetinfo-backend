@@ -62,6 +62,10 @@ const recentPatientSchema = z
       id: uuid,
       name: z.string().meta({ example: 'Thor' }),
       breedId: uuid,
+      species: z.object({
+        id: uuid,
+        name: z.string().meta({ example: 'Cão' }),
+      }),
     }),
   })
   .meta({ id: 'RecentPatient' })
