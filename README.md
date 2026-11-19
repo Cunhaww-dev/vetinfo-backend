@@ -176,6 +176,17 @@ Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opc
 }
 ```
 
+### Medicações (`Medication`)
+
+| Método | Rota                               | O que faz                                                        |
+| ------ | ---------------------------------- | ---------------------------------------------------------------- |
+| POST   | `/visits/:visitId/medications`     | Prescreve uma medicação no atendimento                           |
+| GET    | `/visits/:visitId/medications`     | Medicações do atendimento                                        |
+| GET    | `/patients/:patientId/medications` | Histórico do paciente, de todos os atendimentos (`?active=true`) |
+| PATCH  | `/medications/:medicationId`       | Muda a medicação. Para encerrar, mande o `endDate`               |
+
+A medicação nasce no atendimento e não tem `patientId`: o histórico sai de `Paciente → Atendimento → Medicação`. Sem `startDate`, ela começa no dia do atendimento. O campo `active` é calculado: ela está ativa enquanto não passa do `endDate`. A via (`route`) é uma lista fechada: `oral`, `topical`, `subcutaneous`, `intramuscular`, `intravenous`, `ophthalmic`, `otic`, `rectal`, `inhalation` e `other`.
+
 ### Erros
 
 Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.

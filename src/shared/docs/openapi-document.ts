@@ -1,5 +1,6 @@
 import { createDocument } from 'zod-openapi'
 import { catalogPaths } from '../../modules/catalog/infra/catalog.docs.ts'
+import { medicationPaths } from '../../modules/medications/infra/medication.docs.ts'
 import { guardianPaths } from '../../modules/guardians/infra/guardian.docs.ts'
 import { patientPaths } from '../../modules/patients/infra/patient.docs.ts'
 import { userPaths } from '../../modules/users/infra/user.docs.ts'
@@ -47,6 +48,10 @@ export const openApiDocument = createDocument(
       { name: 'Guardians', description: 'Tutores' },
       { name: 'Patients', description: 'Pacientes' },
       { name: 'Visits', description: 'Atendimentos, sinais vitais e SOAP' },
+      {
+        name: 'Medications',
+        description: 'Medicações prescritas no atendimento',
+      },
     ],
     paths: {
       ...userPaths,
@@ -54,6 +59,7 @@ export const openApiDocument = createDocument(
       ...guardianPaths,
       ...patientPaths,
       ...visitPaths,
+      ...medicationPaths,
     },
   },
   { override: cleanSchema },
