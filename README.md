@@ -199,6 +199,20 @@ A medicação nasce no atendimento e não tem `patientId`: o histórico sai de `
 
 A vacina aponta para o paciente, e o atendimento é opcional: uma vacina de antes do paciente entrar no sistema entra sem atendimento. A aplicação não pode ser no futuro nem antes do nascimento, e a próxima dose vem depois da aplicação (`INVALID_VACCINE_DATES`). No lembrete, uma dose sai da lista quando o paciente toma a mesma vacina (mesmo nome) depois.
 
+### Anexos (`Attachment`)
+
+| Método | Rota                               | O que faz                                     |
+| ------ | ---------------------------------- | --------------------------------------------- |
+| GET    | `/attachment-types`                | Tipos de anexo (exame, laudo, radiografia...) |
+| POST   | `/visits/:visitId/attachments`     | Envia o arquivo (`multipart/form-data`)       |
+| GET    | `/visits/:visitId/attachments`     | Anexos do atendimento                         |
+| GET    | `/patients/:patientId/attachments` | Anexos de todos os atendimentos do paciente   |
+| GET    | `/attachments/:attachmentId/file`  | Baixa o arquivo                               |
+
+O arquivo vai no campo `file`, junto com `typeId` e `description`. Aceita PDF, JPEG, PNG e WEBP, até 10 MB. O tipo é lido dos primeiros bytes do arquivo, e não do nome nem do `Content-Type` do navegador: um HTML com nome de `.png` é recusado (`UNSUPPORTED_FILE_TYPE`). O anexo não muda depois de criado.
+
+**Storage:** com `STORAGE_DRIVER=local` (padrão), os arquivos ficam na pasta `uploads/`, fora do git. Com `STORAGE_DRIVER=r2`, eles vão para um bucket privado do Cloudflare R2 (variáveis `R2_*` no `.env.example`). Nos dois casos, o arquivo só sai pela API, depois de conferir o dono.
+
 ### Erros
 
 Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.
