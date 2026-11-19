@@ -80,13 +80,27 @@ export class PrismaVisitRepository implements VisitRepository {
       select: {
         id: true,
         visitedAt: true,
-        patient: { select: { id: true, name: true, breedId: true } },
+        patient: {
+          select: {
+            id: true,
+            name: true,
+            breedId: true,
+            breed: {
+              select: { species: { select: { id: true, name: true } } },
+            },
+          },
+        },
       },
     })
     return rows.map((row) => ({
       visitId: row.id,
       visitedAt: row.visitedAt,
-      patient: row.patient,
+      patient: {
+        id: row.patient.id,
+        name: row.patient.name,
+        breedId: row.patient.breedId,
+        species: row.patient.breed.species, // para o ícone da espécie na sidebar
+      },
     }))
   }
 
