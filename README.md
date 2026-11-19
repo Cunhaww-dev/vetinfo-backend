@@ -68,14 +68,18 @@ docker compose down                 # derruba o container, o volume nomeado pres
 
 ## Testes
 
-Testes de unidade com Vitest. Cada teste fica ao lado do arquivo que ele testa (`cpf.ts` e `cpf.spec.ts`).
+Testes com Vitest, em 2 grupos:
 
 ```bash
-pnpm test        # roda uma vez
-pnpm test:watch  # roda de novo a cada mudança
+pnpm test              # unitários: domínio e use cases, sem banco
+pnpm test:watch        # os unitários de novo a cada mudança
+pnpm test:integration  # integração: escopo por usuário, com o Postgres
 ```
 
-Hoje os testes cobrem as regras puras do domínio, sem banco: o value object `Cpf` e o `User.activateCrmv`.
+- **Unitários** (`src/**/*.spec.ts`, ao lado do arquivo testado): as regras do domínio (CPF, telefone, CRMV, datas de medicação e vacina, consentimento, status do compartilhamento, tipo do arquivo pelos bytes) e os use cases com repositórios em memória (consentimento obrigatório no estudo, código do tutor só com os animais dele, revogação que vale na hora).
+- **Integração** (`test/integration/*.int.spec.ts`): o teste negativo do Plano. O usuário A cria um registro de cada tipo, e o usuário B não acha nenhum, nem pelo id nem pelas listas. Roda num banco separado, com `_test` no fim do nome do banco do `.env`. O `pnpm test:integration` cria esse banco e aplica as migrations sozinho. O Postgres do `docker compose` precisa estar no ar.
+
+**AVISO:** o teste de integração apaga os dados do banco de teste no começo (`TRUNCATE`). Ele se recusa a rodar se o nome do banco não terminar em `_test`.
 
 ## Documentação da API (Swagger)
 

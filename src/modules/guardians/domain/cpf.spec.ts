@@ -28,4 +28,10 @@ describe('Cpf', () => {
     expect(Cpf.create('5299822472').isLeft()).toBe(true)
     expect(Cpf.create('529982247250').isLeft()).toBe(true)
   })
+
+  it('mascara o CPF e mostra só os 6 dígitos do meio', () => {
+    const cpf = Cpf.create('529.982.247-25').value as Cpf
+
+    expect(cpf.masked()).toBe('***.982.247-**')
+  })
 })
