@@ -144,6 +144,8 @@ Nome, sexo, raça e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O nasc
 
 A resposta traz a raça e a espécie com o nome (`breed` e `species`), além do `breedId`.
 
+**Foto do paciente:** `PUT /patients/:patientId/photo` envia ou troca a foto (`multipart/form-data`, campo `file`, JPEG, PNG ou WEBP até 5 MB). `GET` mostra a foto, e `DELETE` apaga. A foto é atributo do cadastro, e não anexo clínico. A resposta do paciente traz o `photoUrl` (ou `null`), com um `?v=` que muda a cada foto nova.
+
 ### Atendimentos e SOAP (`Visit`)
 
 | Método | Rota                                      | O que faz                                                          |
