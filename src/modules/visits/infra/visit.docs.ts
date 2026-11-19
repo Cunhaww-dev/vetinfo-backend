@@ -19,6 +19,10 @@ const vitalSignsSchema = z
     temperatureC: z.number().nullable().meta({ example: 38.6 }),
     heartRate: z.int().nullable().meta({ example: 110 }),
     respiratoryRate: z.int().nullable().meta({ example: 24 }),
+    bodyConditionScore: z
+      .int()
+      .nullable()
+      .meta({ example: 5, description: 'Escore corporal, de 1 a 9' }),
   })
   .meta({ id: 'VitalSigns' })
 
@@ -89,7 +93,7 @@ export const visitPaths: ZodOpenApiPathsObject = {
       operationId: 'registerVisit',
       summary: 'Cria um atendimento',
       description:
-        'Todos os campos são opcionais. Sem `visitedAt`, vale a hora atual. Faixas: peso 0,01 a 2000 kg, temperatura 25 a 45 °C, FC 1 a 400, FR 1 a 200.',
+        'Todos os campos são opcionais. Sem `visitedAt`, vale a hora atual. Faixas: peso 0,01 a 2000 kg, temperatura 25 a 45 °C, FC 1 a 400, FR 1 a 200, escore corporal 1 a 9.',
       requestParams: patientParams,
       requestBody: {
         content: { 'application/json': { schema: registerVisitSchema } },

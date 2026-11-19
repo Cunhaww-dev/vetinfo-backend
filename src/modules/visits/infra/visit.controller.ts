@@ -28,6 +28,7 @@ function toHttp(visit: Visit) {
       temperatureC: visit.vitalSigns.temperatureC,
       heartRate: visit.vitalSigns.heartRate,
       respiratoryRate: visit.vitalSigns.respiratoryRate,
+      bodyConditionScore: visit.vitalSigns.bodyConditionScore,
     },
     soap: {
       subjective: visit.soap.subjective,

@@ -8,6 +8,7 @@ export type VitalSignsInput = {
   temperatureC?: number | null | undefined
   heartRate?: number | null | undefined
   respiratoryRate?: number | null | undefined
+  bodyConditionScore?: number | null | undefined
 }
 
 type VitalSignsProps = {
@@ -15,6 +16,7 @@ type VitalSignsProps = {
   temperatureC: number | null
   heartRate: number | null
   respiratoryRate: number | null
+  bodyConditionScore: number | null
 }
 
 // Faixas largas de propósito. Só barram erro de digitação (ex.: 380 °C no lugar de 38,0).
@@ -23,6 +25,7 @@ const LIMITS: Record<keyof VitalSignsProps, { min: number; max: number }> = {
   temperatureC: { min: 25, max: 45 },
   heartRate: { min: 1, max: 400 },
   respiratoryRate: { min: 1, max: 200 },
+  bodyConditionScore: { min: 1, max: 9 }, // escala de 1 a 9 (WSAVA)
 }
 
 // Value object: o conjunto de sinais vitais medidos no atendimento. Todos são opcionais.
@@ -32,6 +35,7 @@ export class VitalSigns {
     readonly temperatureC: number | null,
     readonly heartRate: number | null,
     readonly respiratoryRate: number | null,
+    readonly bodyConditionScore: number | null, // escore corporal
   ) {}
 
   static create(input: VitalSignsInput = {}): Either<DomainError, VitalSigns> {
@@ -40,6 +44,7 @@ export class VitalSigns {
       temperatureC: input.temperatureC ?? null,
       heartRate: input.heartRate ?? null,
       respiratoryRate: input.respiratoryRate ?? null,
+      bodyConditionScore: input.bodyConditionScore ?? null,
     }
 
     for (const field of Object.keys(LIMITS) as (keyof VitalSignsProps)[]) {
@@ -67,6 +72,10 @@ export class VitalSigns {
         changes.respiratoryRate === undefined
           ? this.respiratoryRate
           : changes.respiratoryRate,
+      bodyConditionScore:
+        changes.bodyConditionScore === undefined
+          ? this.bodyConditionScore
+          : changes.bodyConditionScore,
     })
   }
 
@@ -76,6 +85,7 @@ export class VitalSigns {
       props.temperatureC,
       props.heartRate,
       props.respiratoryRate,
+      props.bodyConditionScore,
     )
   }
 }

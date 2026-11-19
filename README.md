@@ -164,7 +164,8 @@ Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opc
     "weightKg": 12.5,
     "temperatureC": 38.6,
     "heartRate": 110,
-    "respiratoryRate": 24
+    "respiratoryRate": 24,
+    "bodyConditionScore": 5
   },
   "soap": {
     "subjective": "Vômito há 2 dias",
