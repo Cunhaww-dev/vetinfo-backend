@@ -33,8 +33,12 @@ export class RegisterUser {
     })
     if (result.isLeft()) return left(result.value)
 
-    const user = await this.authProvider.signUp(result.value, input.password)
+    const signedUp = await this.authProvider.signUp(
+      result.value,
+      input.password,
+    )
+    if (signedUp.isLeft()) return left(signedUp.value)
 
-    return right(user)
+    return right(signedUp.value)
   }
 }
