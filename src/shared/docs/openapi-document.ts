@@ -1,5 +1,6 @@
 import { createDocument } from 'zod-openapi'
 import { catalogPaths } from '../../modules/catalog/infra/catalog.docs.ts'
+import { consentPaths } from '../../modules/consents/infra/consent.docs.ts'
 import { attachmentPaths } from '../../modules/attachments/infra/attachment.docs.ts'
 import { vaccinePaths } from '../../modules/vaccines/infra/vaccine.docs.ts'
 import { medicationPaths } from '../../modules/medications/infra/medication.docs.ts'
@@ -59,6 +60,7 @@ export const openApiDocument = createDocument(
         name: 'Attachments',
         description: 'Anexos clínicos (exames, laudos, imagens)',
       },
+      { name: 'Consents', description: 'Consentimento do tutor para estudo' },
     ],
     paths: {
       ...userPaths,
@@ -69,6 +71,7 @@ export const openApiDocument = createDocument(
       ...medicationPaths,
       ...vaccinePaths,
       ...attachmentPaths,
+      ...consentPaths,
     },
   },
   { override: cleanSchema },
