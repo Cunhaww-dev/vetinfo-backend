@@ -18,21 +18,22 @@ enum UserType {
 }
 
 model User {
-  id              String     @id @default(uuid())
+  id              String       @id @default(uuid())
   name            String
-  email           String     @unique
-  emailVerified   Boolean    @default(false) @map("email_verified")
+  email           String       @unique
+  emailVerified   Boolean      @default(false) @map("email_verified")
   image           String?
   type            UserType
   crmv            String?
-  crmvActivatedAt DateTime?  @map("crmv_activated_at")
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
+  crmvActivatedAt DateTime?    @map("crmv_activated_at")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
   sessions        Session[]
   accounts        Account[]
   guardians       Guardian[]
   patients        Patient[]
   visits          Visit[]
+  medications     Medication[]
 
   @@map("users")
 }
@@ -176,23 +177,24 @@ model Patient {
 
 // Atendimento. O userId é o autor (criado_por do DER) e também o escopo.
 model Visit {
-  id                 String     @id @default(uuid())
-  userId             String     @map("user_id")
-  user               User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  id                 String       @id @default(uuid())
+  userId             String       @map("user_id")
+  user               User         @relation(fields: [userId], references: [id], onDelete: Restrict)
   // Snapshot do tipo do autor no momento da criação. Nunca muda.
-  authorType         UserType   @map("author_type")
-  patientId          String     @map("patient_id")
-  patient            Patient    @relation(fields: [patientId], references: [id], onDelete: Restrict)
-  visitedAt          DateTime   @map("visited_at")
-  weightKg           Float?     @map("weight_kg")
-  temperatureC       Float?     @map("temperature_c")
-  heartRate          Int?       @map("heart_rate")
-  respiratoryRate    Int?       @map("respiratory_rate")
+  authorType         UserType     @map("author_type")
+  patientId          String       @map("patient_id")
+  patient            Patient      @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  visitedAt          DateTime     @map("visited_at")
+  weightKg           Float?       @map("weight_kg")
+  temperatureC       Float?       @map("temperature_c")
+  heartRate          Int?         @map("heart_rate")
+  respiratoryRate    Int?         @map("respiratory_rate")
   // Escore corporal, de 1 a 9 (WSAVA)
-  bodyConditionScore Int?       @map("body_condition_score")
-  createdAt          DateTime   @default(now()) @map("created_at")
-  updatedAt          DateTime   @updatedAt @map("updated_at")
+  bodyConditionScore Int?         @map("body_condition_score")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
   soap               VisitSoap?
+  medications        Medication[]
 
   @@index([userId])
   @@index([patientId, visitedAt])
@@ -209,4 +211,41 @@ model VisitSoap {
   plan       String?
 
   @@map("visit_soaps")
+}
+
+enum MedicationRoute {
+  oral
+  topical
+  subcutaneous
+  intramuscular
+  intravenous
+  ophthalmic
+  otic
+  rectal
+  inhalation
+  other
+}
+
+// Medicação prescrita num atendimento. O histórico do paciente sai pelo atendimento
+// (Paciente -> Atendimento -> Medicação), sem FK direta para o paciente.
+model Medication {
+  id            String          @id @default(uuid())
+  userId        String          @map("user_id")
+  user          User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  visitId       String          @map("visit_id")
+  visit         Visit           @relation(fields: [visitId], references: [id], onDelete: Restrict)
+  name          String
+  dosage        String
+  frequency     String
+  route         MedicationRoute
+  startDate     DateTime        @map("start_date") @db.Date
+  endDate       DateTime?       @map("end_date") @db.Date
+  continuousUse Boolean         @default(false) @map("continuous_use")
+  notes         String?
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([visitId])
+  @@map("medications")
 }
