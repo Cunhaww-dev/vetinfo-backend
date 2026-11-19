@@ -35,6 +35,7 @@ model User {
   visits          Visit[]
   medications     Medication[]
   vaccines        Vaccine[]
+  attachments     Attachment[]
 
   @@map("users")
 }
@@ -198,6 +199,7 @@ model Visit {
   soap               VisitSoap?
   medications        Medication[]
   vaccines           Vaccine[]
+  attachments        Attachment[]
 
   @@index([userId])
   @@index([patientId, visitedAt])
@@ -276,4 +278,35 @@ model Vaccine {
   @@index([patientId])
   @@index([visitId])
   @@map("vaccines")
+}
+
+// Tipo do anexo (exame, laudo, radiografia...). Catálogo global, gerenciado pelo seed.
+model AttachmentType {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  attachments Attachment[]
+
+  @@map("attachment_types")
+}
+
+// Arquivo clínico ligado a um atendimento. O arquivo fica no storage (R2 ou disco),
+// e aqui fica só a referência (storageKey).
+model Attachment {
+  id          String         @id @default(uuid())
+  userId      String         @map("user_id")
+  user        User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  visitId     String         @map("visit_id")
+  visit       Visit          @relation(fields: [visitId], references: [id], onDelete: Restrict)
+  typeId      String         @map("type_id")
+  type        AttachmentType @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  fileName    String         @map("file_name")
+  contentType String         @map("content_type")
+  sizeBytes   Int            @map("size_bytes")
+  storageKey  String         @unique @map("storage_key")
+  description String?
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([visitId])
+  @@map("attachments")
 }

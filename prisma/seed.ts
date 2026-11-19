@@ -8,6 +8,16 @@ const CATALOG: Record<string, string[]> = {
 
 const DEFAULT_BREEDS = ['SRD', 'Outros']
 
+const ATTACHMENT_TYPES = [
+  'Exame laboratorial',
+  'Laudo',
+  'Radiografia',
+  'Ultrassonografia',
+  'Foto de lesão',
+  'Receita',
+  'Outros',
+]
+
 async function main() {
   for (const [speciesName, breeds] of Object.entries(CATALOG)) {
     const species = await prisma.species.upsert({
@@ -30,6 +40,15 @@ async function main() {
 
     console.log(`${speciesName}: ${allBreeds.length} breeds`)
   }
+
+  for (const name of ATTACHMENT_TYPES) {
+    await prisma.attachmentType.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    })
+  }
+  console.log(`Attachment types: ${ATTACHMENT_TYPES.length}`)
 }
 
 main()

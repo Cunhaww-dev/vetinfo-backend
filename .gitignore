@@ -10,3 +10,7 @@ coverage
 .claude/
 .windsurf/
 skills-lock.json
+
+# Anexos e fotos no disco (STORAGE_DRIVER=local)
+uploads/
+
