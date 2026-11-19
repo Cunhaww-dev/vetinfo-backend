@@ -225,6 +225,24 @@ O arquivo vai no campo `file`, junto com `typeId` e `description`. Aceita PDF, J
 
 O consentimento autoriza o compartilhamento do paciente para estudo (estudante ou outro profissional). Ele tem peso legal, então nunca é apagado nem editado: revogar só preenche o `revokedAt`, e o tutor assina um novo se mudar de ideia. Só existe um consentimento ativo por tutor e paciente (índice único parcial no banco). Só vale o consentimento do **tutor atual** do paciente: paciente sem tutor não tem como dar consentimento (`PATIENT_WITHOUT_GUARDIAN`).
 
+### Compartilhamento (`Share`)
+
+| Método | Rota                                             | O que faz                                           |
+| ------ | ------------------------------------------------ | --------------------------------------------------- |
+| POST   | `/shares`                                        | Cria um código de acesso somente leitura            |
+| GET    | `/shares`                                        | Lista os códigos, com o status e os usos            |
+| GET    | `/shares/:shareId`                               | Mostra o código, com a lista de acessos (auditoria) |
+| POST   | `/shares/:shareId/revoke`                        | Revoga o código. Sem volta                          |
+| GET    | `/public/shares/:code`                           | **Pública.** Abre o prontuário pelo código          |
+| GET    | `/public/shares/:code/attachments/:attachmentId` | **Pública.** Baixa um anexo pelo código             |
+
+Dois tipos:
+
+- **`guardian`:** o tutor vê os próprios animais. Precisa do `guardianId`, e todos os pacientes têm que ser dele. Não pede consentimento, porque ele é o dono.
+- **`third_party`:** estudo, para estudante ou outro profissional. Todo paciente precisa do consentimento ativo do tutor atual (`CONSENT_REQUIRED`). Se o tutor revogar o consentimento depois, o paciente some do código na hora.
+
+O código tem 10 caracteres, sem letras que confundem (0/O, 1/I/L), e vale 7 dias por padrão (máximo 90). O `maxUses` é opcional. Cada abertura da rota pública conta um uso e fica registrada (data, IP, navegador); baixar um anexo não conta. Código revogado, vencido ou sem usos responde 410 (`SHARE_NOT_AVAILABLE`). A rota pública mostra o paciente, os atendimentos com SOAP, as medicações, os anexos e as vacinas, e **nunca** os dados do tutor. No estudo, o microchip também fica de fora.
+
 ### Erros
 
 Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.
@@ -235,6 +253,7 @@ Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.
 | 401    | Sem sessão (`UNAUTHORIZED`)                                                               |
 | 404    | O registro não existe **ou é de outro usuário**, ou a rota não existe (`ROUTE_NOT_FOUND`) |
 | 409    | Conflito (ex.: `EMAIL_ALREADY_IN_USE`, `CPF_ALREADY_IN_USE`)                              |
+| 410    | Existiu, mas não vale mais (ex.: `SHARE_NOT_AVAILABLE`)                                   |
 | 422    | Regra de domínio (ex.: `INVALID_CPF`, `INVALID_BIRTH_DATE`)                               |
 | 500    | Erro inesperado (`INTERNAL_ERROR`), sempre em JSON                                        |
 
