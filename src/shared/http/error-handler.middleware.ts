@@ -6,6 +6,7 @@ const STATUS_BY_ERROR_TYPE: Record<DomainErrorType, number> = {
   invalid: 422,
   not_found: 404,
   conflict: 409,
+  gone: 410,
 }
 
 // O Express só reconhece um middleware de erro quando ele tem os 4 parâmetros, mesmo sem usar o next.
