@@ -7,6 +7,7 @@ import type { RegisterVaccine } from '../application/register-vaccine.usecase.ts
 import type { UpdateVaccine } from '../application/update-vaccine.usecase.ts'
 import type { Vaccine } from '../domain/vaccine-entity.ts'
 import { dueVaccinesQuerySchema } from '../vaccine.schema.ts'
+import type { DeleteVaccine } from '../application/delete-vaccine.usecase.ts'
 
 type PatientParams = { patientId: string }
 type VisitParams = { visitId: string }
@@ -42,6 +43,7 @@ export class VaccineController {
     private readonly listVisitVaccines: ListVisitVaccines,
     private readonly updateVaccine: UpdateVaccine,
     private readonly listDueVaccines: ListDueVaccines,
+    private readonly deleteVaccine: DeleteVaccine,
   ) {}
 
   register = async (
@@ -120,5 +122,18 @@ export class VaccineController {
         patient: item.patient,
       })),
     )
+  }
+
+  remove = async (
+    req: Request<{ vaccineId: string }>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    const result = await this.deleteVaccine.execute({
+      userId: res.locals.userId,
+      vaccineId: req.params.vaccineId,
+    })
+    if (result.isLeft()) throw result.value
+
+    return res.status(204).send()
   }
 }

@@ -12,6 +12,7 @@ import { UpdateVisit } from '../application/update-visit.usecase.ts'
 import { registerVisitSchema, updateVisitSchema } from '../visit.schema.ts'
 import { PrismaVisitRepository } from './prisma-visit.repository.ts'
 import { VisitController } from './visit.controller.ts'
+import { DeleteVisit } from '../application/delete-visit.usecase.ts'
 
 const visitRepository = new PrismaVisitRepository(prisma)
 const userRepository = new PrismaUserRepository(prisma)
@@ -23,6 +24,7 @@ const controller = new VisitController(
   new UpdateVisit(visitRepository),
   new GetLatestVitalSigns(visitRepository),
   new ListRecentPatients(visitRepository),
+  new DeleteVisit(visitRepository),
 )
 
 export const visitRouter = Router()
@@ -58,3 +60,4 @@ visitRouter.patch(
   validateBody(updateVisitSchema),
   controller.update,
 )
+visitRouter.delete('/visits/:visitId', ensureAuthenticated, controller.remove)

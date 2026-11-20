@@ -13,4 +13,6 @@ export interface AttachmentRepository {
   patientExists(patientId: string, userId: string): Promise<boolean>
   listTypes(): Promise<AttachmentType[]>
   typeExists(typeId: string): Promise<boolean>
+  // false = não existe, é de outro usuário ou já foi apagado
+  softDelete(id: string, userId: string): Promise<boolean>
 }

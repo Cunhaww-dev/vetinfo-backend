@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:seed:demo": "tsx --env-file=.env prisma/seed-demo.ts"
   },
   "keywords": [],
   "author": "Lucas da Cunha Fabri <dev.cunhaww@gmail.com>",

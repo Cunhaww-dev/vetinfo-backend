@@ -12,6 +12,7 @@ import { UploadAttachment } from '../application/upload-attachment.usecase.ts'
 import { uploadAttachmentSchema } from '../attachment.schema.ts'
 import { AttachmentController } from './attachment.controller.ts'
 import { PrismaAttachmentRepository } from './prisma-attachment.repository.ts'
+import { DeleteAttachment } from '../application/delete-attachment.usecase.ts'
 
 export const MAX_ATTACHMENT_SIZE_MB = 10
 
@@ -23,6 +24,7 @@ const controller = new AttachmentController(
   new ListPatientAttachments(attachmentRepository),
   new DownloadAttachment(attachmentRepository, fileStorage),
   new ListAttachmentTypes(attachmentRepository),
+  new DeleteAttachment(attachmentRepository),
 )
 
 export const attachmentRouter = Router()
@@ -54,4 +56,9 @@ attachmentRouter.get(
   '/attachments/:attachmentId/file',
   ensureAuthenticated,
   controller.download,
+)
+attachmentRouter.delete(
+  '/attachments/:attachmentId',
+  ensureAuthenticated,
+  controller.remove,
 )

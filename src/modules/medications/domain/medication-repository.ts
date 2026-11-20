@@ -12,4 +12,6 @@ export interface MedicationRepository {
   listByPatient(patientId: string, userId: string): Promise<Medication[]>
   findVisit(visitId: string, userId: string): Promise<MedicationVisit | null>
   patientExists(patientId: string, userId: string): Promise<boolean>
+  // false = não existe, é de outro usuário ou já foi apagado
+  softDelete(id: string, userId: string): Promise<boolean>
 }

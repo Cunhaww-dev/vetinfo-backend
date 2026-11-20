@@ -12,6 +12,7 @@ import {
 } from '../medication.schema.ts'
 import { MedicationController } from './medication.controller.ts'
 import { PrismaMedicationRepository } from './prisma-medication.repository.ts'
+import { DeleteMedication } from '../application/delete-medication.usecase.ts'
 
 const medicationRepository = new PrismaMedicationRepository(prisma)
 
@@ -20,6 +21,7 @@ const controller = new MedicationController(
   new ListVisitMedications(medicationRepository),
   new ListPatientMedications(medicationRepository),
   new UpdateMedication(medicationRepository),
+  new DeleteMedication(medicationRepository),
 )
 
 export const medicationRouter = Router()
@@ -45,4 +47,9 @@ medicationRouter.patch(
   ensureAuthenticated,
   validateBody(updateMedicationSchema),
   controller.update,
+)
+medicationRouter.delete(
+  '/medications/:medicationId',
+  ensureAuthenticated,
+  controller.remove,
 )

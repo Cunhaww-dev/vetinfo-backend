@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { type Either, left, right } from '../../../shared/either/either.ts'
 import type { DomainError } from '../../../shared/errors/domain-error.ts'
+import type { BodyConditionScale } from '../../catalog/domain/body-condition-scale.ts'
 import { InvalidBirthDate } from './errors/invalid-birth-date.ts'
 
 export type PatientSex = 'male' | 'female'
@@ -9,7 +10,7 @@ export type PatientSex = 'male' | 'female'
 export type PatientBreed = {
   id: string
   name: string
-  species: { id: string; name: string }
+  species: { id: string; name: string; bodyConditionScale: BodyConditionScale }
 }
 
 type CreatePatientInput = {

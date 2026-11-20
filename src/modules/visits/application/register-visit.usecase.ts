@@ -37,6 +37,7 @@ export class RegisterVisit {
       ...input,
       authorType: author.type,
       patientBirthDate: patient.birthDate,
+      bodyConditionScale: patient.bodyConditionScale,
     })
     if (result.isLeft()) return left(result.value)
 
