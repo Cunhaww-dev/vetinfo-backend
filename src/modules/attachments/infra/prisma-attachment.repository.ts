@@ -7,6 +7,7 @@ import type {
   AttachmentRepository,
   AttachmentType,
 } from '../domain/attachment-repository.ts'
+import { LIVE, LIVE_IN_VISIT } from '../../../shared/prisma/not-deleted.ts'
 
 export class PrismaAttachmentRepository implements AttachmentRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -30,14 +31,14 @@ export class PrismaAttachmentRepository implements AttachmentRepository {
 
   async findById(id: string, userId: string): Promise<Attachment | null> {
     const row = await this.prisma.attachment.findFirst({
-      where: { id, userId },
+      where: { id, userId, ...LIVE_IN_VISIT },
     })
     return row ? this.toDomain(row) : null
   }
 
   async listByVisit(visitId: string, userId: string): Promise<Attachment[]> {
     const rows = await this.prisma.attachment.findMany({
-      where: { visitId, userId },
+      where: { visitId, userId, ...LIVE_IN_VISIT },
       orderBy: { createdAt: 'desc' },
     })
     return rows.map((row) => this.toDomain(row))
@@ -49,7 +50,7 @@ export class PrismaAttachmentRepository implements AttachmentRepository {
     userId: string,
   ): Promise<Attachment[]> {
     const rows = await this.prisma.attachment.findMany({
-      where: { userId, visit: { patientId } },
+      where: { userId, deletedAt: null, visit: { patientId, deletedAt: null } },
       orderBy: { createdAt: 'desc' },
     })
     return rows.map((row) => this.toDomain(row))
@@ -57,7 +58,17 @@ export class PrismaAttachmentRepository implements AttachmentRepository {
 
   async visitExists(visitId: string, userId: string): Promise<boolean> {
     const count = await this.prisma.visit.count({
-      where: { id: visitId, userId },
+      where: { id: visitId, userId, ...LIVE },
+    })
+    return count > 0
+  }
+
+  // Soft delete: marca a data. O arquivo fica no storage (prontuário).
+  // false = não existe, é de outro usuário ou já foi apagado
+  async softDelete(id: string, userId: string): Promise<boolean> {
+    const { count } = await this.prisma.attachment.updateMany({
+      where: { id, userId, ...LIVE_IN_VISIT },
+      data: { deletedAt: new Date() },
     })
     return count > 0
   }

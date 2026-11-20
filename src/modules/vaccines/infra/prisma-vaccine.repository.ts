@@ -9,6 +9,11 @@ import type {
   VaccineRepository,
   VaccineVisit,
 } from '../domain/vaccine-repository.ts'
+import {
+  LIVE,
+  LIVE_IN_VISIT,
+  LIVE_VACCINE,
+} from '../../../shared/prisma/not-deleted.ts'
 
 // A mais nova primeiro. Com a mesma data, ganha a última cadastrada
 const NEWEST_FIRST = [
@@ -43,13 +48,15 @@ export class PrismaVaccineRepository implements VaccineRepository {
   }
 
   async findById(id: string, userId: string): Promise<Vaccine | null> {
-    const row = await this.prisma.vaccine.findFirst({ where: { id, userId } })
+    const row = await this.prisma.vaccine.findFirst({
+      where: { id, userId, ...LIVE_VACCINE },
+    })
     return row ? this.toDomain(row) : null
   }
 
   async listByPatient(patientId: string, userId: string): Promise<Vaccine[]> {
     const rows = await this.prisma.vaccine.findMany({
-      where: { patientId, userId },
+      where: { patientId, userId, ...LIVE_VACCINE },
       orderBy: NEWEST_FIRST,
     })
     return rows.map((row) => this.toDomain(row))
@@ -57,7 +64,7 @@ export class PrismaVaccineRepository implements VaccineRepository {
 
   async listByVisit(visitId: string, userId: string): Promise<Vaccine[]> {
     const rows = await this.prisma.vaccine.findMany({
-      where: { visitId, userId },
+      where: { visitId, userId, ...LIVE_IN_VISIT },
       orderBy: NEWEST_FIRST,
     })
     return rows.map((row) => this.toDomain(row))
@@ -67,7 +74,7 @@ export class PrismaVaccineRepository implements VaccineRepository {
   // Ex.: V10 em jan com próxima dose em fev, e outra V10 em fev = a de jan já foi resolvida.
   async listDue(userId: string, until: Date): Promise<DueVaccine[]> {
     const candidates = await this.prisma.vaccine.findMany({
-      where: { userId, nextDoseAt: { not: null, lte: until } },
+      where: { userId, nextDoseAt: { not: null, lte: until }, ...LIVE_VACCINE },
       include: { patient: { select: { id: true, name: true } } },
       orderBy: { nextDoseAt: 'asc' },
     })
@@ -77,6 +84,7 @@ export class PrismaVaccineRepository implements VaccineRepository {
       where: {
         userId,
         patientId: { in: [...new Set(candidates.map((c) => c.patientId))] },
+        ...LIVE_VACCINE,
       },
       select: { id: true, patientId: true, name: true, appliedAt: true },
     })
@@ -100,6 +108,15 @@ export class PrismaVaccineRepository implements VaccineRepository {
       }))
   }
 
+  // Soft delete: marca a data. false = não existe, é de outro usuário ou já foi apagado
+  async softDelete(id: string, userId: string): Promise<boolean> {
+    const { count } = await this.prisma.vaccine.updateMany({
+      where: { id, userId, ...LIVE_VACCINE },
+      data: { deletedAt: new Date() },
+    })
+    return count > 0
+  }
+
   async findPatient(
     patientId: string,
     userId: string,
@@ -115,7 +132,7 @@ export class PrismaVaccineRepository implements VaccineRepository {
     userId: string,
   ): Promise<VaccineVisit | null> {
     return this.prisma.visit.findFirst({
-      where: { id: visitId, userId },
+      where: { id: visitId, userId, ...LIVE },
       select: { id: true, patientId: true, visitedAt: true },
     })
   }

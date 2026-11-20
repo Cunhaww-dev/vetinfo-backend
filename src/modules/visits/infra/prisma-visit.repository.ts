@@ -15,6 +15,7 @@ import {
   scaleFromRow,
   scaleToRow,
 } from '../../../shared/prisma/body-condition-scale.ts'
+import { LIVE } from '../../../shared/prisma/not-deleted.ts'
 
 // O atendimento sempre vem junto com o SOAP dele
 const WITH_SOAP = { soap: true }
@@ -55,7 +56,7 @@ export class PrismaVisitRepository implements VisitRepository {
 
   async findById(id: string, userId: string): Promise<Visit | null> {
     const row = await this.prisma.visit.findFirst({
-      where: { id, userId },
+      where: { id, userId, ...LIVE },
       include: WITH_SOAP,
     })
     return row ? this.toDomain(row) : null
@@ -63,7 +64,7 @@ export class PrismaVisitRepository implements VisitRepository {
 
   async listByPatient(patientId: string, userId: string): Promise<Visit[]> {
     const rows = await this.prisma.visit.findMany({
-      where: { patientId, userId },
+      where: { patientId, userId, ...LIVE },
       include: WITH_SOAP,
       orderBy: NEWEST_FIRST,
     })
@@ -77,7 +78,7 @@ export class PrismaVisitRepository implements VisitRepository {
     limit: number,
   ): Promise<RecentPatient[]> {
     const rows = await this.prisma.visit.findMany({
-      where: { userId },
+      where: { userId, ...LIVE },
       orderBy: NEWEST_FIRST,
       distinct: ['patientId'],
       take: limit,
@@ -117,6 +118,7 @@ export class PrismaVisitRepository implements VisitRepository {
       where: {
         patientId,
         userId,
+        ...LIVE,
         OR: [
           { weightKg: { not: null } },
           { temperatureC: { not: null } },
@@ -129,6 +131,15 @@ export class PrismaVisitRepository implements VisitRepository {
       orderBy: NEWEST_FIRST,
     })
     return row ? this.toDomain(row) : null
+  }
+
+  // Soft delete: o atendimento some, e com ele as medicações, vacinas e anexos dele
+  async softDelete(id: string, userId: string): Promise<boolean> {
+    const { count } = await this.prisma.visit.updateMany({
+      where: { id, userId, ...LIVE },
+      data: { deletedAt: new Date() },
+    })
+    return count > 0
   }
 
   async patientExists(patientId: string, userId: string): Promise<boolean> {

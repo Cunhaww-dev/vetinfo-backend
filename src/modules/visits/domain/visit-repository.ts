@@ -33,4 +33,6 @@ export interface VisitRepository {
   patientExists(patientId: string, userId: string): Promise<boolean>
   findPatient(patientId: string, userId: string): Promise<VisitPatient | null>
   listRecentPatients(userId: string, limit: number): Promise<RecentPatient[]>
+  // false = não existe, é de outro usuário ou já foi apagado
+  softDelete(id: string, userId: string): Promise<boolean>
 }
