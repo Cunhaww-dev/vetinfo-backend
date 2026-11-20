@@ -102,6 +102,21 @@ export const medicationPaths: ZodOpenApiPathsObject = {
     },
   },
   '/medications/{medicationId}': {
+    delete: {
+      tags: ['Medications'],
+      operationId: 'deleteMedication',
+      summary: 'Apaga uma medicação (soft delete)',
+      description:
+        'A medicação some do app e do compartilhamento. Fica no banco (soft delete).',
+      requestParams: { path: z.object({ medicationId: uuid }) },
+      responses: {
+        '204': { description: 'Medicação apagada' },
+        '401': unauthorized,
+        '404': error(
+          'Medicação não existe, é de outro usuário ou já foi apagada (MEDICATION_NOT_FOUND)',
+        ),
+      },
+    },
     patch: {
       tags: ['Medications'],
       operationId: 'updateMedication',

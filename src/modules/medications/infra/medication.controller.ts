@@ -6,6 +6,7 @@ import type { RegisterMedication } from '../application/register-medication.usec
 import type { UpdateMedication } from '../application/update-medication.usecase.ts'
 import type { Medication } from '../domain/medication-entity.ts'
 import { patientMedicationsQuerySchema } from '../medication.schema.ts'
+import type { DeleteMedication } from '../application/delete-medication.usecase.ts'
 
 type VisitParams = { visitId: string }
 type PatientParams = { patientId: string }
@@ -42,6 +43,7 @@ export class MedicationController {
     private readonly listVisitMedications: ListVisitMedications,
     private readonly listPatientMedications: ListPatientMedications,
     private readonly updateMedication: UpdateMedication,
+    private readonly deleteMedication: DeleteMedication,
   ) {}
 
   register = async (
@@ -103,5 +105,18 @@ export class MedicationController {
     if (result.isLeft()) throw result.value
 
     return res.status(200).json(toHttp(result.value))
+  }
+
+  remove = async (
+    req: Request<{ medicationId: string }>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    const result = await this.deleteMedication.execute({
+      userId: res.locals.userId,
+      medicationId: req.params.medicationId,
+    })
+    if (result.isLeft()) throw result.value
+
+    return res.status(204).send()
   }
 }
