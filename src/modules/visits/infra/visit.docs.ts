@@ -19,10 +19,15 @@ const vitalSignsSchema = z
     temperatureC: z.number().nullable().meta({ example: 38.6 }),
     heartRate: z.int().nullable().meta({ example: 110 }),
     respiratoryRate: z.int().nullable().meta({ example: 24 }),
-    bodyConditionScore: z
-      .int()
-      .nullable()
-      .meta({ example: 5, description: 'Escore corporal, de 1 a 9' }),
+    bodyConditionScore: z.number().nullable().meta({
+      example: 5,
+      description:
+        'Escore corporal. Na escala 1-9, só inteiros. Na escala 1-5, passo de 0,5 (ex.: 3.5)',
+    }),
+    bodyConditionScale: z.enum(['1-9', '1-5']).nullable().meta({
+      description:
+        'Vem da espécie no momento do registro. Só na resposta. null = sem escore',
+    }),
   })
   .meta({ id: 'VitalSigns' })
 
@@ -93,7 +98,7 @@ export const visitPaths: ZodOpenApiPathsObject = {
       operationId: 'registerVisit',
       summary: 'Cria um atendimento',
       description:
-        'Todos os campos são opcionais. Sem `visitedAt`, vale a hora atual. Faixas: peso 0,01 a 2000 kg, temperatura 25 a 45 °C, FC 1 a 400, FR 1 a 200, escore corporal 1 a 9.',
+        'Todos os campos são opcionais. Sem `visitedAt`, vale a hora atual. Faixas: peso 0,01 a 2000 kg, temperatura 25 a 45 °C, FC 1 a 400, FR 1 a 200. O escore corporal segue a escala da espécie (`species.bodyConditionScale`): 1 a 9 com inteiros, ou 1 a 5 com passo de 0,5.',
       requestParams: patientParams,
       requestBody: {
         content: { 'application/json': { schema: registerVisitSchema } },

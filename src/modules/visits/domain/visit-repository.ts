@@ -1,3 +1,4 @@
+import type { BodyConditionScale } from '../../catalog/domain/body-condition-scale.ts'
 import type { Visit } from './visit-entity.ts'
 
 // Só leitura, para a lista "atendidos há pouco". Não é uma entidade.
@@ -13,7 +14,11 @@ export type RecentPatient = {
 }
 
 // Só o que o atendimento precisa saber do paciente
-export type VisitPatient = { birthDate: Date | null }
+export type VisitPatient = {
+  birthDate: Date | null
+  // Vem da espécie (paciente → raça → espécie)
+  bodyConditionScale: BodyConditionScale
+}
 
 // Toda busca recebe o userId. Um usuário nunca enxerga o atendimento de outro.
 export interface VisitRepository {

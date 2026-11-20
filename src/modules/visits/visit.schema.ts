@@ -6,7 +6,7 @@ const vitalSignsSchema = z.object({
   temperatureC: z.number().nullish(),
   heartRate: z.number().int().nullish(),
   respiratoryRate: z.number().int().nullish(),
-  bodyConditionScore: z.number().int().nullish(),
+  bodyConditionScore: z.number().nullish(),
 })
 
 const soapSchema = z.object({
