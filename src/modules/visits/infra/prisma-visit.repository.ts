@@ -11,6 +11,10 @@ import type {
   VisitRepository,
 } from '../domain/visit-repository.ts'
 import { VitalSigns } from '../domain/vital-signs.ts'
+import {
+  scaleFromRow,
+  scaleToRow,
+} from '../../../shared/prisma/body-condition-scale.ts'
 
 // O atendimento sempre vem junto com o SOAP dele
 const WITH_SOAP = { soap: true }
@@ -137,10 +141,20 @@ export class PrismaVisitRepository implements VisitRepository {
     patientId: string,
     userId: string,
   ): Promise<VisitPatient | null> {
-    return this.prisma.patient.findFirst({
+    const row = await this.prisma.patient.findFirst({
       where: { id: patientId, userId },
-      select: { birthDate: true },
+      select: {
+        birthDate: true,
+        breed: {
+          select: { species: { select: { bodyConditionScale: true } } },
+        },
+      },
     })
+    if (!row) return null
+    return {
+      birthDate: row.birthDate,
+      bodyConditionScale: scaleFromRow(row.breed.species.bodyConditionScale),
+    }
   }
 
   // Os campos que o usuário pode mudar. O autor, o paciente e o snapshot nunca mudam.
@@ -152,6 +166,9 @@ export class PrismaVisitRepository implements VisitRepository {
       heartRate: visit.vitalSigns.heartRate,
       respiratoryRate: visit.vitalSigns.respiratoryRate,
       bodyConditionScore: visit.vitalSigns.bodyConditionScore,
+      bodyConditionScale: visit.vitalSigns.bodyConditionScale
+        ? scaleToRow(visit.vitalSigns.bodyConditionScale)
+        : null,
     }
   }
 
@@ -177,6 +194,9 @@ export class PrismaVisitRepository implements VisitRepository {
         heartRate: row.heartRate,
         respiratoryRate: row.respiratoryRate,
         bodyConditionScore: row.bodyConditionScore,
+        bodyConditionScale: row.bodyConditionScale
+          ? scaleFromRow(row.bodyConditionScale)
+          : null,
       }),
       // O create sempre grava o SOAP. O Soap.create() só cobre uma linha criada fora da API.
       soap: row.soap ? Soap.restore(row.soap) : Soap.create(),
