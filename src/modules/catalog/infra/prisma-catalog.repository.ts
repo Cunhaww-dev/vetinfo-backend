@@ -3,6 +3,7 @@ import type {
   PrismaClient,
   Species as SpeciesRow,
 } from '../../../generated/prisma/client.ts'
+import { scaleFromRow } from '../../../shared/prisma/body-condition-scale.ts'
 import { Breed } from '../domain/breed-entity.ts'
 import type { CatalogRepository } from '../domain/catalog-repository.ts'
 import { Species } from '../domain/species-entity.ts'
@@ -33,7 +34,11 @@ export class PrismaCatalogRepository implements CatalogRepository {
   }
 
   private toSpecies(row: SpeciesRow): Species {
-    return Species.restore({ id: row.id, name: row.name })
+    return Species.restore({
+      id: row.id,
+      name: row.name,
+      bodyConditionScale: scaleFromRow(row.bodyConditionScale),
+    })
   }
 
   private toBreed(row: BreedRow): Breed {

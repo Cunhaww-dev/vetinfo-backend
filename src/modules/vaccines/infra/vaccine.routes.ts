@@ -13,6 +13,7 @@ import {
 } from '../vaccine.schema.ts'
 import { PrismaVaccineRepository } from './prisma-vaccine.repository.ts'
 import { VaccineController } from './vaccine.controller.ts'
+import { DeleteVaccine } from '../application/delete-vaccine.usecase.ts'
 
 const vaccineRepository = new PrismaVaccineRepository(prisma)
 
@@ -22,6 +23,7 @@ const controller = new VaccineController(
   new ListVisitVaccines(vaccineRepository),
   new UpdateVaccine(vaccineRepository),
   new ListDueVaccines(vaccineRepository),
+  new DeleteVaccine(vaccineRepository),
 )
 
 export const vaccineRouter = Router()
@@ -48,4 +50,9 @@ vaccineRouter.patch(
   ensureAuthenticated,
   validateBody(updateVaccineSchema),
   controller.update,
+)
+vaccineRouter.delete(
+  '/vaccines/:vaccineId',
+  ensureAuthenticated,
+  controller.remove,
 )

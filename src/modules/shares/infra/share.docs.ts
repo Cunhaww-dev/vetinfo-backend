@@ -8,6 +8,7 @@ import {
   uuid,
 } from '../../../shared/docs/responses.ts'
 import { createShareSchema } from '../share.schema.ts'
+import { bodyConditionScaleSchema } from '../../../shared/docs/body-condition-scale.ts'
 
 const shareSchema = z
   .object({
@@ -44,7 +45,8 @@ const sharedVisitSchema = z.object({
     temperatureC: z.number().nullable(),
     heartRate: z.int().nullable(),
     respiratoryRate: z.int().nullable(),
-    bodyConditionScore: z.int().nullable(),
+    bodyConditionScore: z.number().nullable(),
+    bodyConditionScale: bodyConditionScaleSchema.nullable(),
   }),
   soap: z.object({
     subjective: z.string().nullable(),

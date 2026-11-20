@@ -7,6 +7,7 @@ import type { ListPatientAttachments } from '../application/list-patient-attachm
 import type { ListVisitAttachments } from '../application/list-visit-attachments.usecase.ts'
 import type { UploadAttachment } from '../application/upload-attachment.usecase.ts'
 import type { Attachment } from '../domain/attachment-entity.ts'
+import type { DeleteAttachment } from '../application/delete-attachment.usecase.ts'
 
 type VisitParams = { visitId: string }
 type PatientParams = { patientId: string }
@@ -33,6 +34,7 @@ export class AttachmentController {
     private readonly listPatientAttachments: ListPatientAttachments,
     private readonly downloadAttachment: DownloadAttachment,
     private readonly listAttachmentTypes: ListAttachmentTypes,
+    private readonly deleteAttachment: DeleteAttachment,
   ) {}
 
   upload = async (
@@ -99,5 +101,18 @@ export class AttachmentController {
 
   listTypes = async (_req: Request, res: Response) => {
     return res.status(200).json(await this.listAttachmentTypes.execute())
+  }
+
+  remove = async (
+    req: Request<{ attachmentId: string }>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    const result = await this.deleteAttachment.execute({
+      userId: res.locals.userId,
+      attachmentId: req.params.attachmentId,
+    })
+    if (result.isLeft()) throw result.value
+
+    return res.status(204).send()
   }
 }

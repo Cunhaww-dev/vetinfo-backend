@@ -90,10 +90,18 @@ model Verification {
   @@map("verification")
 }
 
+// A escala do escore corporal muda com a espécie.
+// 1 a 9: cão, gato (WSAVA) e equino (Henneke). 1 a 5: produção, aves, exóticos.
+enum BodyConditionScale {
+  nine_point
+  five_point
+}
+
 model Species {
-  id     String  @id @default(uuid())
-  name   String  @unique
-  breeds Breed[]
+  id                 String             @id @default(uuid())
+  name               String             @unique
+  bodyConditionScale BodyConditionScale @default(nine_point) @map("body_condition_scale")
+  breeds             Breed[]
 
   @@map("species")
 }
@@ -187,22 +195,26 @@ model Patient {
 
 // Atendimento. O userId é o autor (criado_por do DER) e também o escopo.
 model Visit {
-  id                 String       @id @default(uuid())
-  userId             String       @map("user_id")
-  user               User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  id                 String              @id @default(uuid())
+  userId             String              @map("user_id")
+  user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
   // Snapshot do tipo do autor no momento da criação. Nunca muda.
-  authorType         UserType     @map("author_type")
-  patientId          String       @map("patient_id")
-  patient            Patient      @relation(fields: [patientId], references: [id], onDelete: Restrict)
-  visitedAt          DateTime     @map("visited_at")
-  weightKg           Float?       @map("weight_kg")
-  temperatureC       Float?       @map("temperature_c")
-  heartRate          Int?         @map("heart_rate")
-  respiratoryRate    Int?         @map("respiratory_rate")
-  // Escore corporal, de 1 a 9 (WSAVA)
-  bodyConditionScore Int?         @map("body_condition_score")
-  createdAt          DateTime     @default(now()) @map("created_at")
-  updatedAt          DateTime     @updatedAt @map("updated_at")
+  authorType         UserType            @map("author_type")
+  patientId          String              @map("patient_id")
+  patient            Patient             @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  visitedAt          DateTime            @map("visited_at")
+  weightKg           Float?              @map("weight_kg")
+  temperatureC       Float?              @map("temperature_c")
+  heartRate          Int?                @map("heart_rate")
+  respiratoryRate    Int?                @map("respiratory_rate")
+  // Escore corporal. A escala vai junto: um 5 na escala de 1 a 5 é obeso,
+  // e na de 1 a 9 é ideal. Ela vem da espécie no momento do registro.
+  bodyConditionScore Float?              @map("body_condition_score")
+  bodyConditionScale BodyConditionScale? @map("body_condition_scale")
+  // Soft delete: o registro some do app, mas fica no banco (prontuário)
+  deletedAt          DateTime?           @map("deleted_at")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
   soap               VisitSoap?
   medications        Medication[]
   vaccines           Vaccine[]
@@ -254,6 +266,8 @@ model Medication {
   endDate       DateTime?       @map("end_date") @db.Date
   continuousUse Boolean         @default(false) @map("continuous_use")
   notes         String?
+  // Soft delete: o registro some do app, mas fica no banco (prontuário)
+  deletedAt     DateTime?       @map("deleted_at")
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
 
@@ -278,6 +292,8 @@ model Vaccine {
   manufacturer String?
   batch        String?
   notes        String?
+  // Soft delete: o registro some do app, mas fica no banco (prontuário)
+  deletedAt    DateTime? @map("deleted_at")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
@@ -311,6 +327,8 @@ model Attachment {
   sizeBytes   Int            @map("size_bytes")
   storageKey  String         @unique @map("storage_key")
   description String?
+  // Soft delete: o registro some do app, mas fica no banco (prontuário)
+  deletedAt   DateTime?      @map("deleted_at")
   createdAt   DateTime       @default(now()) @map("created_at")
 
   @@index([userId])

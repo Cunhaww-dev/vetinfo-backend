@@ -8,6 +8,7 @@ import type { RegisterVisit } from '../application/register-visit.usecase.ts'
 import type { UpdateVisit } from '../application/update-visit.usecase.ts'
 import type { Visit } from '../domain/visit-entity.ts'
 import { recentPatientsQuerySchema } from '../visit.schema.ts'
+import type { DeleteVisit } from '../application/delete-visit.usecase.ts'
 
 type PatientParams = { patientId: string }
 type VisitParams = { visitId: string }
@@ -29,6 +30,7 @@ function toHttp(visit: Visit) {
       heartRate: visit.vitalSigns.heartRate,
       respiratoryRate: visit.vitalSigns.respiratoryRate,
       bodyConditionScore: visit.vitalSigns.bodyConditionScore,
+      bodyConditionScale: visit.vitalSigns.bodyConditionScale,
     },
     soap: {
       subjective: visit.soap.subjective,
@@ -47,6 +49,7 @@ export class VisitController {
     private readonly updateVisit: UpdateVisit,
     private readonly getLatestVitalSigns: GetLatestVitalSigns,
     private readonly listRecentPatients: ListRecentPatients,
+    private readonly deleteVisit: DeleteVisit,
   ) {}
 
   register = async (
@@ -140,5 +143,18 @@ export class VisitController {
         patient: item.patient,
       })),
     )
+  }
+
+  remove = async (
+    req: Request<{ visitId: string }>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    const result = await this.deleteVisit.execute({
+      userId: res.locals.userId,
+      visitId: req.params.visitId,
+    })
+    if (result.isLeft()) throw result.value
+
+    return res.status(204).send()
   }
 }

@@ -1,10 +1,12 @@
 import { randomUUID } from 'node:crypto'
 import { type Either, left, right } from '../../../shared/either/either.ts'
 import type { DomainError } from '../../../shared/errors/domain-error.ts'
+import type { BodyConditionScale } from '../../catalog/domain/body-condition-scale.ts'
 import type { UserType } from '../../users/domain/user-entity.ts'
 import { InvalidVisitDate } from './errors/invalid-visit-date.ts'
 import { VisitBeforeBirth } from './errors/visit-before-birth.ts'
 import { Soap, type SoapInput } from './soap.ts'
+import type { VisitPatient } from './visit-repository.ts'
 import { VitalSigns, type VitalSignsInput } from './vital-signs.ts'
 
 type CreateVisitInput = {
@@ -12,6 +14,8 @@ type CreateVisitInput = {
   patientId: string
   authorType: UserType
   patientBirthDate: Date | null
+  // A escala do escore corporal da espécie do paciente
+  bodyConditionScale: BodyConditionScale
   visitedAt?: Date | undefined
   vitalSigns?: VitalSignsInput | undefined
   soap?: SoapInput | undefined
@@ -63,7 +67,10 @@ export class Visit {
     if (isBeforeBirth(visitedAt, input.patientBirthDate))
       return left(new VisitBeforeBirth())
 
-    const vitalSigns = VitalSigns.create(input.vitalSigns)
+    const vitalSigns = VitalSigns.create(
+      input.vitalSigns,
+      input.bodyConditionScale,
+    )
     if (vitalSigns.isLeft()) return left(vitalSigns.value)
 
     return right(
@@ -82,8 +89,9 @@ export class Visit {
 
   update(
     changes: UpdateVisitInput,
-    patientBirthDate: Date | null,
+    patient: VisitPatient,
   ): Either<DomainError, Visit> {
+    const patientBirthDate = patient.birthDate
     const visitedAt = changes.visitedAt ?? this.visitedAt
     if (isInTheFuture(visitedAt)) return left(new InvalidVisitDate())
 
@@ -92,7 +100,7 @@ export class Visit {
       return left(new VisitBeforeBirth())
 
     const vitalSigns: Either<DomainError, VitalSigns> = changes.vitalSigns
-      ? this.vitalSigns.change(changes.vitalSigns)
+      ? this.vitalSigns.change(changes.vitalSigns, patient.bodyConditionScale)
       : right(this.vitalSigns)
     if (vitalSigns.isLeft()) return left(vitalSigns.value)
 

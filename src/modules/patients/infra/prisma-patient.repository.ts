@@ -1,16 +1,32 @@
 import type {
   Patient as PatientRow,
   PrismaClient,
+  BodyConditionScale as ScaleRow,
 } from '../../../generated/prisma/client.ts'
+import { scaleFromRow } from '../../../shared/prisma/body-condition-scale.ts'
 import { Patient, type PatientBreed } from '../domain/patient-entity.ts'
 import type { PatientRepository } from '../domain/patient-repository.ts'
 
-// O paciente sempre vem com a raça e a espécie, só o id e o nome
+// O paciente sempre vem com a raça e a espécie (com a escala do escore)
 const BREED_FIELDS = {
   id: true,
   name: true,
-  species: { select: { id: true, name: true } },
+  species: { select: { id: true, name: true, bodyConditionScale: true } },
 }
+
+type BreedRow = {
+  id: string
+  name: string
+  species: { id: string; name: string; bodyConditionScale: ScaleRow }
+}
+
+const toBreed = (row: BreedRow): PatientBreed => ({
+  ...row,
+  species: {
+    ...row.species,
+    bodyConditionScale: scaleFromRow(row.species.bodyConditionScale),
+  },
+})
 const WITH_BREED = { breed: { select: BREED_FIELDS } }
 
 export class PrismaPatientRepository implements PatientRepository {
@@ -58,10 +74,11 @@ export class PrismaPatientRepository implements PatientRepository {
   }
 
   async findBreed(breedId: string): Promise<PatientBreed | null> {
-    return this.prisma.breed.findUnique({
+    const row = await this.prisma.breed.findUnique({
       where: { id: breedId },
       select: BREED_FIELDS,
     })
+    return row ? toBreed(row) : null
   }
 
   async guardianExists(guardianId: string, userId: string): Promise<boolean> {
@@ -97,12 +114,12 @@ export class PrismaPatientRepository implements PatientRepository {
     }
   }
 
-  private toDomain(row: PatientRow & { breed: PatientBreed }): Patient {
+  private toDomain(row: PatientRow & { breed: BreedRow }): Patient {
     return Patient.restore({
       id: row.id,
       userId: row.userId,
       guardianId: row.guardianId,
-      breed: row.breed,
+      breed: toBreed(row.breed),
       name: row.name,
       sex: row.sex,
       neutered: row.neutered,
