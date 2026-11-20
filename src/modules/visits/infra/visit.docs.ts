@@ -12,6 +12,7 @@ import {
   registerVisitSchema,
   updateVisitSchema,
 } from '../visit.schema.ts'
+import { bodyConditionScaleSchema } from '../../../shared/docs/body-condition-scale.ts'
 
 const vitalSignsSchema = z
   .object({
@@ -24,7 +25,7 @@ const vitalSignsSchema = z
       description:
         'Escore corporal. Na escala 1-9, só inteiros. Na escala 1-5, passo de 0,5 (ex.: 3.5)',
     }),
-    bodyConditionScale: z.enum(['1-9', '1-5']).nullable().meta({
+    bodyConditionScale: bodyConditionScaleSchema.nullable().meta({
       description:
         'Vem da espécie no momento do registro. Só na resposta. null = sem escore',
     }),

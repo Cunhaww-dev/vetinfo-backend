@@ -1,3 +1,4 @@
+import type { BodyConditionScale } from '../../catalog/domain/body-condition-scale.ts'
 // Só leitura: o que a pessoa com o código enxerga. Não são entidades.
 // É um retrato do prontuário, montado numa consulta só, e nunca volta para o banco.
 
@@ -11,6 +12,7 @@ export type SharedVisit = {
     heartRate: number | null
     respiratoryRate: number | null
     bodyConditionScore: number | null
+    bodyConditionScale: BodyConditionScale | null
   }
   soap: {
     subjective: string | null

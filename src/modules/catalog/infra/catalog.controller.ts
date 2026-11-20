@@ -8,6 +8,7 @@ function toHttpSpecies(species: Species) {
   return {
     id: species.id,
     name: species.name,
+    bodyConditionScale: species.bodyConditionScale,
   }
 }
 

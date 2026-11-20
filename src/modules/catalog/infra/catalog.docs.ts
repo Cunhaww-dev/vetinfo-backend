@@ -6,9 +6,14 @@ import {
   unauthorized,
   uuid,
 } from '../../../shared/docs/responses.ts'
+import { bodyConditionScaleSchema } from '../../../shared/docs/body-condition-scale.ts'
 
 const speciesSchema = z
-  .object({ id: uuid, name: z.string().meta({ example: 'Cão' }) })
+  .object({
+    id: uuid,
+    name: z.string().meta({ example: 'Cão' }),
+    bodyConditionScale: bodyConditionScaleSchema,
+  })
   .meta({ id: 'Species' })
 
 const breedSchema = z
