@@ -137,4 +137,21 @@ export const attachmentPaths: ZodOpenApiPathsObject = {
       },
     },
   },
+  '/attachments/{attachmentId}': {
+    delete: {
+      tags: ['Attachments'],
+      operationId: 'deleteAttachment',
+      summary: 'Apaga um anexo (soft delete)',
+      description:
+        'O anexo some do app e do compartilhamento. O registro e o arquivo ficam guardados (soft delete).',
+      requestParams: { path: z.object({ attachmentId: uuid }) },
+      responses: {
+        '204': { description: 'Anexo apagado' },
+        '401': unauthorized,
+        '404': error(
+          'Anexo não existe, é de outro usuário ou já foi apagado (ATTACHMENT_NOT_FOUND)',
+        ),
+      },
+    },
+  },
 }

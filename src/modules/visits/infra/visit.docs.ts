@@ -157,6 +157,21 @@ export const visitPaths: ZodOpenApiPathsObject = {
     },
   },
   '/visits/{visitId}': {
+    delete: {
+      tags: ['Visits'],
+      operationId: 'deleteVisit',
+      summary: 'Apaga um atendimento (soft delete)',
+      description:
+        'O atendimento some do app, e com ele as medicações, vacinas e anexos dele. Os dados ficam no banco (soft delete). Não tem volta pela API.',
+      requestParams: { path: z.object({ visitId: uuid }) },
+      responses: {
+        '204': { description: 'Atendimento apagado' },
+        '401': unauthorized,
+        '404': error(
+          'Atendimento não existe, é de outro usuário ou já foi apagado (VISIT_NOT_FOUND)',
+        ),
+      },
+    },
     get: {
       tags: ['Visits'],
       operationId: 'getVisit',

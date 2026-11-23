@@ -5,6 +5,7 @@ import type {
   SharedRecordReader,
 } from '../domain/shared-record-reader.ts'
 import { scaleFromRow } from '../../../shared/prisma/body-condition-scale.ts'
+import { LIVE, LIVE_VACCINE } from '../../../shared/prisma/not-deleted.ts'
 
 // O prontuário que o código mostra: paciente, atendimentos com SOAP, medicações,
 // anexos e vacinas. Nada do tutor (nome, telefone, CPF) sai por aqui.
@@ -22,17 +23,19 @@ export class PrismaSharedRecordReader implements SharedRecordReader {
       include: {
         breed: { include: { species: true } },
         visits: {
+          where: LIVE,
           orderBy: [{ visitedAt: 'desc' }, { createdAt: 'desc' }],
           include: {
             soap: true,
-            medications: { orderBy: { startDate: 'desc' } },
+            medications: { where: LIVE, orderBy: { startDate: 'desc' } },
             attachments: {
+              where: LIVE,
               orderBy: { createdAt: 'desc' },
               include: { type: true },
             },
           },
         },
-        vaccines: { orderBy: { appliedAt: 'desc' } },
+        vaccines: { where: LIVE_VACCINE, orderBy: { appliedAt: 'desc' } },
       },
     })
 
@@ -103,7 +106,8 @@ export class PrismaSharedRecordReader implements SharedRecordReader {
       where: {
         id: attachmentId,
         userId: ownerId,
-        visit: { patientId: { in: patientIds } },
+        deletedAt: null,
+        visit: { patientId: { in: patientIds }, deletedAt: null },
       },
       select: { fileName: true, contentType: true, storageKey: true },
     })

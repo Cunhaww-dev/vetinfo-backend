@@ -23,4 +23,6 @@ export interface VaccineRepository {
   listDue(userId: string, until: Date): Promise<DueVaccine[]>
   findPatient(patientId: string, userId: string): Promise<VaccinePatient | null>
   findVisit(visitId: string, userId: string): Promise<VaccineVisit | null>
+  // false = não existe, é de outro usuário ou já foi apagado
+  softDelete(id: string, userId: string): Promise<boolean>
 }

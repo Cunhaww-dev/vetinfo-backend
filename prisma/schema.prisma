@@ -211,6 +211,8 @@ model Visit {
   // e na de 1 a 9 é ideal. Ela vem da espécie no momento do registro.
   bodyConditionScore Float?              @map("body_condition_score")
   bodyConditionScale BodyConditionScale? @map("body_condition_scale")
+  // Soft delete: o registro some do app, mas fica no banco (prontuário)
+  deletedAt          DateTime?           @map("deleted_at")
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
   soap               VisitSoap?
@@ -264,6 +266,8 @@ model Medication {
   endDate       DateTime?       @map("end_date") @db.Date
   continuousUse Boolean         @default(false) @map("continuous_use")
   notes         String?
+  // Soft delete: o registro some do app, mas fica no banco (prontuário)
+  deletedAt     DateTime?       @map("deleted_at")
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
 
@@ -288,6 +292,8 @@ model Vaccine {
   manufacturer String?
   batch        String?
   notes        String?
+  // Soft delete: o registro some do app, mas fica no banco (prontuário)
+  deletedAt    DateTime? @map("deleted_at")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
@@ -321,6 +327,8 @@ model Attachment {
   sizeBytes   Int            @map("size_bytes")
   storageKey  String         @unique @map("storage_key")
   description String?
+  // Soft delete: o registro some do app, mas fica no banco (prontuário)
+  deletedAt   DateTime?      @map("deleted_at")
   createdAt   DateTime       @default(now()) @map("created_at")
 
   @@index([userId])
