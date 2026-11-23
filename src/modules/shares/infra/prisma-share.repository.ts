@@ -21,7 +21,6 @@ type ShareRow = {
   code: string
   recipientName: string | null
   expiresAt: Date
-  maxUses: number | null
   revokedAt: Date | null
   createdAt: Date
   items: { patientId: string }[]
@@ -42,7 +41,6 @@ export class PrismaShareRepository implements ShareRepository {
         code: share.code,
         recipientName: share.recipientName,
         expiresAt: share.expiresAt,
-        maxUses: share.maxUses,
         createdAt: share.createdAt,
         items: {
           create: share.patientIds.map((patientId) => ({ patientId })),
@@ -138,7 +136,6 @@ export class PrismaShareRepository implements ShareRepository {
       code: row.code,
       recipientName: row.recipientName,
       expiresAt: row.expiresAt,
-      maxUses: row.maxUses,
       revokedAt: row.revokedAt,
       usesCount: row._count.uses,
       createdAt: row.createdAt,

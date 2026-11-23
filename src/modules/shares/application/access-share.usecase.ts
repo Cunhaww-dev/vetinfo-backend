@@ -20,7 +20,6 @@ type SharedRecord = { share: Share; patients: SharedPatient[] }
 const REASONS = {
   revoked: 'it was revoked',
   expired: 'it expired',
-  exhausted: 'it reached the maximum number of uses',
 }
 
 // Os pacientes que o código ainda pode mostrar. No estudo, a revogação do

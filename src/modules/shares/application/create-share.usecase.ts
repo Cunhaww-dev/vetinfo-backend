@@ -18,7 +18,6 @@ type CreateShareInput = {
   patientIds: string[]
   recipientName?: string | null | undefined
   expiresAt?: Date | undefined
-  maxUses?: number | null | undefined
 }
 
 export class CreateShare {

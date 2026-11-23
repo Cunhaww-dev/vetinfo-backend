@@ -22,9 +22,10 @@ const shareSchema = z
     code: z.string().meta({ example: 'K7QM2XRP9A' }),
     recipientName: z.string().nullable().meta({ example: 'Prof. Ana' }),
     expiresAt: z.iso.datetime(),
-    maxUses: z.int().nullable().meta({ description: 'null = sem limite' }),
-    usesCount: z.int(),
-    status: z.enum(['active', 'revoked', 'expired', 'exhausted']),
+    usesCount: z
+      .int()
+      .meta({ description: 'Quantas vezes o código foi aberto (auditoria)' }),
+    status: z.enum(['active', 'revoked', 'expired']),
     revokedAt: z.iso.datetime().nullable(),
     createdAt: z.iso.datetime(),
   })
@@ -127,7 +128,7 @@ export const sharePaths: ZodOpenApiPathsObject = {
       operationId: 'createShare',
       summary: 'Cria um código de acesso somente leitura',
       description:
-        '`guardian`: o tutor vê os próprios animais. Precisa do `guardianId`, e todos os pacientes são dele. `third_party` (estudo): todo paciente precisa do consentimento ativo do tutor atual. Sem `expiresAt`, vale 7 dias (máximo 90). Sem `maxUses`, não tem limite.',
+        '`guardian`: o tutor vê os próprios animais. Precisa do `guardianId`, e todos os pacientes são dele. `third_party` (estudo): todo paciente precisa do consentimento ativo do tutor atual. Sem `expiresAt`, vale 7 dias (máximo 90). O código não tem limite de usos: cada abertura fica só registrada (auditoria).',
       requestBody: {
         content: { 'application/json': { schema: createShareSchema } },
       },

@@ -148,9 +148,9 @@ describe('CreateShare e AccessShare', () => {
     expect(Math.round(days)).toBe(7)
   })
 
-  it('cada acesso conta um uso, até esgotar', async () => {
+  it('cada acesso fica registrado, sem limite de usos', async () => {
     repo.consented.add('thor:g1')
-    const share = (await create({ maxUses: 1 })).value as Share
+    const share = (await create({})).value as Share
     const access = new AccessShare(repo, reader)
 
     // O código digitado em minúsculas também vale
@@ -159,16 +159,14 @@ describe('CreateShare e AccessShare', () => {
         await access.execute({ code: share.code.toLowerCase(), visitor })
       ).isRight(),
     ).toBe(true)
-    expect(repo.uses).toHaveLength(1)
 
     // O repositório em memória não conta os usos sozinho: o banco conta
-    await repo.update(Share.restore({ ...share, usesCount: 1 }))
+    await repo.update(Share.restore({ ...share, usesCount: 50 }))
 
     expect(
-      (await access.execute({ code: share.code, visitor })).value,
-    ).toMatchObject({
-      code: 'SHARE_NOT_AVAILABLE',
-    })
+      (await access.execute({ code: share.code, visitor })).isRight(),
+    ).toBe(true)
+    expect(repo.uses).toHaveLength(2)
   })
 
   it('no estudo, o microchip fica de fora e o consentimento revogado esconde o paciente', async () => {
