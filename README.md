@@ -261,7 +261,7 @@ Dois tipos:
 - **`guardian`:** o tutor vê os próprios animais. Precisa do `guardianId`, e todos os pacientes têm que ser dele. Não pede consentimento, porque ele é o dono.
 - **`third_party`:** estudo, para estudante ou outro profissional. Todo paciente precisa do consentimento ativo do tutor atual (`CONSENT_REQUIRED`). Se o tutor revogar o consentimento depois, o paciente some do código na hora.
 
-O código tem 10 caracteres, sem letras que confundem (0/O, 1/I/L), e vale 7 dias por padrão (máximo 90). O `maxUses` é opcional. Cada abertura da rota pública conta um uso e fica registrada (data, IP, navegador); baixar um anexo não conta. Código revogado, vencido ou sem usos responde 410 (`SHARE_NOT_AVAILABLE`). A rota pública mostra o paciente, os atendimentos com SOAP, as medicações, os anexos e as vacinas, e **nunca** os dados do tutor. No estudo, o microchip também fica de fora.
+O código tem 10 caracteres, sem letras que confundem (0/O, 1/I/L), e vale 7 dias por padrão (máximo 90). O código não tem limite de usos: ele vale até vencer ou ser revogado. Cada abertura da rota pública fica registrada (data, IP, navegador) para auditoria; baixar um anexo não fica. Código revogado ou vencido responde 410 (`SHARE_NOT_AVAILABLE`). A rota pública mostra o paciente, os atendimentos com SOAP, as medicações, os anexos e as vacinas, e **nunca** os dados do tutor. No estudo, o microchip também fica de fora.
 
 ### Soft delete
 
