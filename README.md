@@ -44,7 +44,7 @@ pnpm exec prisma generate
 # 8. Popula o catálogo de espécies e raças
 pnpm exec prisma db seed
 
-# 8b. (Opcional) Dados de demonstração: login demo@vetinfo.dev / vetinfo123
+# 8b. (Opcional) Dados de demonstração: login demo@vetinfo.dev, senha em DEMO_USER_PASSWORD
 pnpm db:seed:demo
 
 # 9. Sobe a API em modo watch
@@ -53,7 +53,7 @@ pnpm dev
 
 Se estiver clonando o projeto do zero, os passos 6, 7 e 8 não são opcionais. A pasta `src/generated/prisma` está no `.gitignore` porque é código gerado, então em uma cópia nova ela não existe e a aplicação não sobe sem ela. **No Prisma 7 o `migrate dev` não roda mais o `generate`**: depois de toda migration nova, rode o `generate` de novo. O CLI acha o `prisma7.config.ts` sozinho, sem `--config`. O seed usa `upsert`, então pode rodar mais de uma vez sem duplicar nada.
 
-O `db:seed:demo` cria a vet "Dra. Ana Souza" com 5 tutores, 10 pacientes de espécies diferentes (cão, gato, ave, coelho, equino, bovino, roedor, réptil), atendimentos, medicações, vacinas (algumas atrasadas) e consentimentos. Ele só serve para desenvolvimento. Se o usuário demo já existe, ele não cria nada.
+O `db:seed:demo` cria a vet "Dra. Ana Souza" com 5 tutores, 10 pacientes de espécies diferentes (cão, gato, ave, coelho, equino, bovino, roedor, réptil), atendimentos, medicações, vacinas (algumas atrasadas) e consentimentos. Ele só serve para desenvolvimento e homologação: com `NODE_ENV=production`, ele para com erro. A senha da conta demo vem de `DEMO_USER_PASSWORD`, no `.env`, e nunca fica no código. Se o usuário demo já existe, ele não cria nada.
 
 Para conferir se está tudo de pé:
 

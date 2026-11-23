@@ -3,15 +3,26 @@
 // atendimentos, medicações, vacinas e consentimentos.
 //
 // Uso: pnpm db:seed:demo (depois do pnpm prisma db seed, que cria o catálogo)
-// Login: demo@vetinfo.dev / vetinfo123
+// Login: demo@vetinfo.dev com a senha de DEMO_USER_PASSWORD, no .env
 
 import { BetterAuthProvider } from '../src/modules/users/infra/better-auth-provider.ts'
 import { PrismaUserRepository } from '../src/modules/users/infra/prisma-user.repository.ts'
 import { RegisterUser } from '../src/modules/users/application/register-user.usecase.ts'
 import { prisma } from '../src/shared/prisma/client.ts'
 
+// Só dev e homologação. Com NODE_ENV=production, o seed para antes de tudo:
+// uma conta com senha conhecida no banco real seria uma porta aberta.
+if (process.env.NODE_ENV === 'production')
+  throw new Error('O seed demo não roda em produção.')
+
+// A senha fica no .env, fora do código e do git
+const PASSWORD = process.env.DEMO_USER_PASSWORD
+if (!PASSWORD || PASSWORD.length < 8)
+  throw new Error(
+    'Defina DEMO_USER_PASSWORD no .env, com pelo menos 8 caracteres.',
+  )
+
 const EMAIL = 'demo@vetinfo.dev'
-const PASSWORD = 'vetinfo123'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 // Dias a partir de hoje (negativo = passado), com a hora do atendimento
@@ -770,7 +781,7 @@ async function main() {
   console.log(
     `Demo pronta: ${GUARDIANS.length} tutores, ${PATIENTS.length} pacientes, ${visitCount} atendimentos.`,
   )
-  console.log(`Login: ${EMAIL} / ${PASSWORD}`)
+  console.log(`Login: ${EMAIL}, com a senha de DEMO_USER_PASSWORD`)
 }
 
 main()
