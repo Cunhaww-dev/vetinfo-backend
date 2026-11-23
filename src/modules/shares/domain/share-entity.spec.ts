@@ -44,21 +44,21 @@ describe('Share', () => {
     expect(create({ expiresAt: inDays(90) }).isRight()).toBe(true)
   })
 
-  it('status: revogado ganha de vencido, que ganha de esgotado', () => {
+  it('status: revogado ganha de vencido', () => {
     const past = inDays(-1)
 
-    expect(restore({ maxUses: 2, usesCount: 2 }).status()).toBe('exhausted')
-    expect(
-      restore({ expiresAt: past, maxUses: 1, usesCount: 1 }).status(),
-    ).toBe('expired')
+    expect(restore({ expiresAt: past }).status()).toBe('expired')
     expect(restore({ revokedAt: new Date(), expiresAt: past }).status()).toBe(
       'revoked',
     )
-    expect(restore({ maxUses: null, usesCount: 500 }).status()).toBe('active')
   })
 
-  it('esgotado ainda entrega arquivo, revogado e vencido não', () => {
-    expect(restore({ maxUses: 1, usesCount: 1 }).canServeFiles()).toBe(true)
+  it('sem limite de usos: muitos acessos não bloqueiam o código', () => {
+    expect(restore({ usesCount: 500 }).status()).toBe('active')
+    expect(restore({ usesCount: 500 }).canServeFiles()).toBe(true)
+  })
+
+  it('revogado e vencido não entregam arquivo', () => {
     expect(restore({ revokedAt: new Date() }).canServeFiles()).toBe(false)
     expect(restore({ expiresAt: inDays(-1) }).canServeFiles()).toBe(false)
   })

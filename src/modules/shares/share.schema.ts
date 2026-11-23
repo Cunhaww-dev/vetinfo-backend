@@ -9,5 +9,4 @@ export const createShareSchema = z.object({
   recipientName: z.string().trim().nullish(),
   // Sem prazo, vale 7 dias
   expiresAt: z.iso.datetime({ offset: true }).optional(),
-  maxUses: z.number().int().min(1).max(1000).nullish(),
 })

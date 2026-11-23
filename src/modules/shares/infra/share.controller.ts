@@ -25,7 +25,6 @@ function toHttp(share: Share) {
     code: share.code,
     recipientName: share.recipientName,
     expiresAt: share.expiresAt.toISOString(),
-    maxUses: share.maxUses,
     usesCount: share.usesCount,
     status: share.status(),
     revokedAt: share.revokedAt?.toISOString() ?? null,
