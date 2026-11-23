@@ -13,6 +13,11 @@ export const MEDICATION_ROUTES = [
   'otic',
   'rectal',
   'inhalation',
+  // Decisão de 23/11/2026: 4 vias a mais, e o "other" continua
+  'intranasal',
+  'transdermal',
+  'intraocular',
+  'intraarticular',
   'other',
 ] as const
 

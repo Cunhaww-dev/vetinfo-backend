@@ -247,6 +247,10 @@ enum MedicationRoute {
   otic
   rectal
   inhalation
+  intranasal
+  transdermal
+  intraocular
+  intraarticular
   other
 }
 
