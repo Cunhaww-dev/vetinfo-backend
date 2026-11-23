@@ -205,7 +205,7 @@ Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opc
 | PATCH  | `/medications/:medicationId`       | Muda a medicação. Para encerrar, mande o `endDate`               |
 | DELETE | `/medications/:medicationId`       | Apaga a medicação (soft delete)                                  |
 
-A medicação nasce no atendimento e não tem `patientId`: o histórico sai de `Paciente → Atendimento → Medicação`. Sem `startDate`, ela começa no dia do atendimento. O campo `active` é calculado: ela está ativa enquanto não passa do `endDate`. A via (`route`) é uma lista fechada: `oral`, `topical`, `subcutaneous`, `intramuscular`, `intravenous`, `ophthalmic`, `otic`, `rectal`, `inhalation` e `other`.
+A medicação nasce no atendimento e não tem `patientId`: o histórico sai de `Paciente → Atendimento → Medicação`. Sem `startDate`, ela começa no dia do atendimento. O campo `active` é calculado: ela está ativa enquanto não passa do `endDate`. A via (`route`) é uma lista fechada: `oral`, `topical`, `subcutaneous`, `intramuscular`, `intravenous`, `ophthalmic`, `otic`, `rectal`, `inhalation`, `intranasal`, `transdermal`, `intraocular`, `intraarticular` e `other`.
 
 ### Vacinas (`Vaccine`)
 
