@@ -23,8 +23,9 @@ export class UpdateVisit {
 
     // O paciente é do mesmo usuário, porque o atendimento é
     const patient = await this.visits.findPatient(visit.patientId, userId)
+    if (!patient) return left(new VisitNotFound(visitId))
 
-    const result = visit.update(changes, patient?.birthDate ?? null)
+    const result = visit.update(changes, patient)
     if (result.isLeft()) return left(result.value)
 
     await this.visits.update(result.value)

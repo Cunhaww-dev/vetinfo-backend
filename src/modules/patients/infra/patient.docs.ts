@@ -11,6 +11,7 @@ import {
   registerPatientSchema,
   updatePatientSchema,
 } from '../patient.schema.ts'
+import { bodyConditionScaleSchema } from '../../../shared/docs/body-condition-scale.ts'
 
 const nameRef = (example: string) =>
   z.object({ id: uuid, name: z.string().meta({ example }) })
@@ -23,7 +24,9 @@ const patientSchema = z
       .meta({ description: 'null = sem tutor (ONG, resgate)' }),
     breedId: uuid,
     breed: nameRef('Labrador'),
-    species: nameRef('Cão').meta({ description: 'Vem pela raça' }),
+    species: nameRef('Cão')
+      .extend({ bodyConditionScale: bodyConditionScaleSchema })
+      .meta({ description: 'Vem pela raça, com a escala do escore corporal' }),
     name: z.string().meta({ example: 'Rex' }),
     sex: z.enum(['male', 'female']),
     neutered: z.boolean(),
