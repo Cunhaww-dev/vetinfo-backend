@@ -44,11 +44,16 @@ pnpm exec prisma generate
 # 8. Popula o catálogo de espécies e raças
 pnpm exec prisma db seed
 
+# 8b. (Opcional) Dados de demonstração: login demo@vetinfo.dev / vetinfo123
+pnpm db:seed:demo
+
 # 9. Sobe a API em modo watch
 pnpm dev
 ```
 
 Se estiver clonando o projeto do zero, os passos 6, 7 e 8 não são opcionais. A pasta `src/generated/prisma` está no `.gitignore` porque é código gerado, então em uma cópia nova ela não existe e a aplicação não sobe sem ela. **No Prisma 7 o `migrate dev` não roda mais o `generate`**: depois de toda migration nova, rode o `generate` de novo. O CLI acha o `prisma7.config.ts` sozinho, sem `--config`. O seed usa `upsert`, então pode rodar mais de uma vez sem duplicar nada.
+
+O `db:seed:demo` cria a vet "Dra. Ana Souza" com 5 tutores, 10 pacientes de espécies diferentes (cão, gato, ave, coelho, equino, bovino, roedor, réptil), atendimentos, medicações, vacinas (algumas atrasadas) e consentimentos. Ele só serve para desenvolvimento. Se o usuário demo já existe, ele não cria nada.
 
 Para conferir se está tudo de pé:
 
@@ -123,6 +128,11 @@ O token da sessão **nunca** vem no corpo da resposta, só no cookie `httpOnly`.
 | GET    | `/species`                   | Lista as espécies                            |
 | GET    | `/species/:speciesId/breeds` | Lista as raças da espécie, com o SRD no topo |
 
+O VetInfo atende todas as espécies. O seed tem 13: cão, gato, equino, ave, bovino, ovino, caprino, suíno, coelho, roedor, furão, réptil e peixe. Cada espécie tem a escala do escore corporal (`bodyConditionScale`):
+
+- **`1-9`:** cão e gato (WSAVA) e equino (Henneke). Só números inteiros.
+- **`1-5`:** produção, aves e exóticos. Passo de 0,5 (ex.: 3,5).
+
 ### Tutores (`Guardian`)
 
 | Método | Rota                             | O que faz                                |
@@ -160,6 +170,9 @@ A resposta traz a raça e a espécie com o nome (`breed` e `species`), além do 
 | GET    | `/visits/recent?limit=3`                  | Pacientes atendidos há pouco, um por paciente (limit de 1 a 10)    |
 | GET    | `/visits/:visitId`                        | Mostra um atendimento                                              |
 | PATCH  | `/visits/:visitId`                        | Muda data, sinais vitais ou SOAP. O autor nunca muda               |
+| DELETE | `/visits/:visitId`                        | Apaga o atendimento (soft delete), com o que está nele             |
+
+**Escore corporal:** a escala vem da espécie do paciente, nunca do cliente. A resposta manda o `bodyConditionScale` junto com o `bodyConditionScore`, porque um 5 na escala de 1 a 5 é obeso, e na de 1 a 9 é ideal. Se a pessoa edita outro sinal vital, o escore salvo fica com a escala dele.
 
 Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opcionais; sem `visitedAt`, vale a hora atual):
 
@@ -190,6 +203,7 @@ Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opc
 | GET    | `/visits/:visitId/medications`     | Medicações do atendimento                                        |
 | GET    | `/patients/:patientId/medications` | Histórico do paciente, de todos os atendimentos (`?active=true`) |
 | PATCH  | `/medications/:medicationId`       | Muda a medicação. Para encerrar, mande o `endDate`               |
+| DELETE | `/medications/:medicationId`       | Apaga a medicação (soft delete)                                  |
 
 A medicação nasce no atendimento e não tem `patientId`: o histórico sai de `Paciente → Atendimento → Medicação`. Sem `startDate`, ela começa no dia do atendimento. O campo `active` é calculado: ela está ativa enquanto não passa do `endDate`. A via (`route`) é uma lista fechada: `oral`, `topical`, `subcutaneous`, `intramuscular`, `intravenous`, `ophthalmic`, `otic`, `rectal`, `inhalation` e `other`.
 
@@ -202,6 +216,7 @@ A medicação nasce no atendimento e não tem `patientId`: o histórico sai de `
 | GET    | `/visits/:visitId/vaccines`     | Vacinas aplicadas no atendimento                             |
 | GET    | `/vaccines/due?days=30`         | Próximas doses e doses atrasadas (lembrete), de 1 a 365 dias |
 | PATCH  | `/vaccines/:vaccineId`          | Muda a vacina. O paciente e o atendimento nunca mudam        |
+| DELETE | `/vaccines/:vaccineId`          | Apaga a vacina (soft delete)                                 |
 
 A vacina aponta para o paciente, e o atendimento é opcional: uma vacina de antes do paciente entrar no sistema entra sem atendimento. A aplicação não pode ser no futuro nem antes do nascimento, e a próxima dose vem depois da aplicação (`INVALID_VACCINE_DATES`). No lembrete, uma dose sai da lista quando o paciente toma a mesma vacina (mesmo nome) depois.
 
@@ -214,6 +229,7 @@ A vacina aponta para o paciente, e o atendimento é opcional: uma vacina de ante
 | GET    | `/visits/:visitId/attachments`     | Anexos do atendimento                         |
 | GET    | `/patients/:patientId/attachments` | Anexos de todos os atendimentos do paciente   |
 | GET    | `/attachments/:attachmentId/file`  | Baixa o arquivo                               |
+| DELETE | `/attachments/:attachmentId`       | Apaga o anexo (soft delete)                   |
 
 O arquivo vai no campo `file`, junto com `typeId` e `description`. Aceita PDF, JPEG, PNG e WEBP, até 10 MB. O tipo é lido dos primeiros bytes do arquivo, e não do nome nem do `Content-Type` do navegador: um HTML com nome de `.png` é recusado (`UNSUPPORTED_FILE_TYPE`). O anexo não muda depois de criado.
 
@@ -246,6 +262,10 @@ Dois tipos:
 - **`third_party`:** estudo, para estudante ou outro profissional. Todo paciente precisa do consentimento ativo do tutor atual (`CONSENT_REQUIRED`). Se o tutor revogar o consentimento depois, o paciente some do código na hora.
 
 O código tem 10 caracteres, sem letras que confundem (0/O, 1/I/L), e vale 7 dias por padrão (máximo 90). O `maxUses` é opcional. Cada abertura da rota pública conta um uso e fica registrada (data, IP, navegador); baixar um anexo não conta. Código revogado, vencido ou sem usos responde 410 (`SHARE_NOT_AVAILABLE`). A rota pública mostra o paciente, os atendimentos com SOAP, as medicações, os anexos e as vacinas, e **nunca** os dados do tutor. No estudo, o microchip também fica de fora.
+
+### Soft delete
+
+Atendimento, medicação, vacina e anexo podem ser apagados com `DELETE` (resposta 204). Eles não saem do banco: a coluna `deleted_at` recebe a data, e todas as consultas pulam o registro. O prontuário é um documento clínico, então nada some de verdade. Apagar o atendimento esconde também as medicações, as vacinas e os anexos dele. O arquivo do anexo fica no storage. O consentimento não tem `DELETE`: ele tem a revogação.
 
 ### Erros
 
