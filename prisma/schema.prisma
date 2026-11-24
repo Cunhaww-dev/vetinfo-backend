@@ -132,6 +132,8 @@ model Guardian {
   email     String
   cpf       String? // só os 11 dígitos
   birthDate DateTime          @map("birth_date") @db.Date
+  // Soft delete: o tutor some do app, mas fica no banco
+  deletedAt DateTime?         @map("deleted_at")
   createdAt DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
   addresses GuardianAddress[]
@@ -139,8 +141,8 @@ model Guardian {
   consents  GuardianConsent[]
   shares    Share[]
 
-  // O mesmo CPF não repete entre os tutores de um usuário. O Postgres aceita vários NULL.
-  @@unique([userId, cpf])
+  // O mesmo CPF não repete entre os tutores vivos de um usuário. É um índice
+  // parcial (WHERE deleted_at IS NULL), escrito na migration: o Prisma não escreve esse tipo.
   @@index([userId])
   @@map("guardians")
 }
@@ -179,6 +181,8 @@ model Patient {
   birthDate  DateTime          @map("birth_date") @db.Date
   microchip  String?
   photoKey   String?           @map("photo_key")
+  // Soft delete: o paciente some do app com tudo o que é dele, mas fica no banco (prontuário)
+  deletedAt  DateTime?         @map("deleted_at")
   createdAt  DateTime          @default(now()) @map("created_at")
   updatedAt  DateTime          @updatedAt @map("updated_at")
   visits     Visit[]
@@ -186,8 +190,8 @@ model Patient {
   consents   GuardianConsent[]
   shareItems ShareItem[]
 
-  // Único por usuário: o mesmo animal pode ter cadastro em 2 clínicas
-  @@unique([userId, microchip])
+  // O microchip é único entre os pacientes vivos de um usuário: o mesmo animal pode
+  // ter cadastro em 2 clínicas. Índice parcial (WHERE deleted_at IS NULL), na migration.
   @@index([userId])
   @@index([guardianId])
   @@map("patients")
