@@ -41,6 +41,9 @@ const sharedVisitSchema = z.object({
   id: uuid,
   visitedAt: z.iso.datetime(),
   authorType: z.enum(['professional', 'student']),
+  type: z.enum(['consultation', 'vaccination']).meta({
+    description: 'Consulta ou vacinação. Na vacinação, o SOAP vem vazio',
+  }),
   vitalSigns: z.object({
     weightKg: z.number().nullable(),
     temperatureC: z.number().nullable(),

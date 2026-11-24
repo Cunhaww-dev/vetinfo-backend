@@ -57,6 +57,7 @@ export class PrismaSharedRecordReader implements SharedRecordReader {
         id: visit.id,
         visitedAt: visit.visitedAt,
         authorType: visit.authorType,
+        type: visit.type,
         vitalSigns: {
           weightKg: visit.weightKg,
           temperatureC: visit.temperatureC,

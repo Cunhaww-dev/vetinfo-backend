@@ -1,5 +1,6 @@
 import type {
   VisitRepository,
+  VisitSearchFilters,
   VisitSearchResult,
 } from '../domain/visit-repository.ts'
 
@@ -8,19 +9,21 @@ export const VISITS_PAGE_SIZE = 20
 type SearchVisitsInput = {
   userId: string
   speciesId?: string | undefined
+  type?: VisitSearchFilters['type']
   from?: Date | undefined
   to?: Date | undefined
   page: number
 }
 
 // A tela de atendimentos: todos os atendimentos do usuário, de todos os pacientes.
-// Filtra por espécie e por período. Não tem caso de erro: sem resultado, a lista vem vazia.
+// Filtra por espécie, por tipo e por período. Não tem caso de erro: sem resultado, a lista vem vazia.
 export class SearchVisits {
   constructor(private readonly visits: VisitRepository) {}
 
   async execute(input: SearchVisitsInput): Promise<VisitSearchResult> {
     return this.visits.search(input.userId, {
       speciesId: input.speciesId,
+      type: input.type,
       from: input.from,
       to: input.to,
       page: input.page,

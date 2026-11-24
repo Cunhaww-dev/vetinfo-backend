@@ -4,13 +4,14 @@ import { PatientNotFound } from '../../patients/domain/errors/patient-not-found.
 import { UserNotFound } from '../../users/domain/errors/user-not-found.ts'
 import type { UserRepository } from '../../users/domain/user-repository.ts'
 import type { SoapInput } from '../domain/soap.ts'
-import { Visit } from '../domain/visit-entity.ts'
+import { Visit, type VisitType } from '../domain/visit-entity.ts'
 import type { VisitRepository } from '../domain/visit-repository.ts'
 import type { VitalSignsInput } from '../domain/vital-signs.ts'
 
 type RegisterVisitInput = {
   userId: string
   patientId: string
+  type?: VisitType | undefined
   visitedAt?: Date | undefined
   vitalSigns?: VitalSignsInput | undefined
   soap?: SoapInput | undefined
