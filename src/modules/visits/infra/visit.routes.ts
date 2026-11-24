@@ -13,6 +13,7 @@ import { registerVisitSchema, updateVisitSchema } from '../visit.schema.ts'
 import { PrismaVisitRepository } from './prisma-visit.repository.ts'
 import { VisitController } from './visit.controller.ts'
 import { DeleteVisit } from '../application/delete-visit.usecase.ts'
+import { SearchVisits } from '../application/search-visits.usecase.ts'
 
 const visitRepository = new PrismaVisitRepository(prisma)
 const userRepository = new PrismaUserRepository(prisma)
@@ -25,6 +26,7 @@ const controller = new VisitController(
   new GetLatestVitalSigns(visitRepository),
   new ListRecentPatients(visitRepository),
   new DeleteVisit(visitRepository),
+  new SearchVisits(visitRepository),
 )
 
 export const visitRouter = Router()
@@ -47,6 +49,7 @@ visitRouter.get(
   ensureAuthenticated,
   controller.latestVitalSigns,
 )
+visitRouter.get('/visits', ensureAuthenticated, controller.search)
 // Antes do /visits/:visitId, senão o Express lê "recent" como um visitId
 visitRouter.get(
   '/visits/recent',

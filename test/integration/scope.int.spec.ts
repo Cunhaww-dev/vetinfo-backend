@@ -177,6 +177,12 @@ describe('escopo por usuário: B não enxerga o dado de A', () => {
     expect(await repo.findLatestWithVitalSigns(ids.patient, B)).toBeNull()
     expect(await repo.findPatient(ids.patient, B)).toBeNull()
     expect(await repo.listRecentPatients(B, 10)).toEqual([])
+    expect(await repo.search(B, { page: 1, pageSize: 20 })).toEqual({
+      items: [],
+      total: 0,
+    })
+    const ofA = await repo.search(A, { page: 1, pageSize: 20 })
+    expect(ofA.items.map((item) => item.id)).toEqual([ids.visit])
   })
 
   it('medicação', async () => {

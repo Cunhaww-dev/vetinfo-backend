@@ -7,7 +7,12 @@ import type { ListVisits } from '../application/list-visits.usecase.ts'
 import type { RegisterVisit } from '../application/register-visit.usecase.ts'
 import type { UpdateVisit } from '../application/update-visit.usecase.ts'
 import type { Visit } from '../domain/visit-entity.ts'
-import { recentPatientsQuerySchema } from '../visit.schema.ts'
+import type { SearchVisits } from '../application/search-visits.usecase.ts'
+import { VISITS_PAGE_SIZE } from '../application/search-visits.usecase.ts'
+import {
+  recentPatientsQuerySchema,
+  searchVisitsQuerySchema,
+} from '../visit.schema.ts'
 import type { DeleteVisit } from '../application/delete-visit.usecase.ts'
 
 type PatientParams = { patientId: string }
@@ -50,7 +55,30 @@ export class VisitController {
     private readonly getLatestVitalSigns: GetLatestVitalSigns,
     private readonly listRecentPatients: ListRecentPatients,
     private readonly deleteVisit: DeleteVisit,
+    private readonly searchVisits: SearchVisits,
   ) {}
+
+  search = async (req: Request, res: Response<unknown, AuthLocals>) => {
+    const query = searchVisitsQuerySchema.parse(req.query)
+
+    const { items, total } = await this.searchVisits.execute({
+      userId: res.locals.userId,
+      speciesId: query.speciesId,
+      from: toDate(query.from),
+      to: toDate(query.to),
+      page: query.page,
+    })
+
+    return res.status(200).json({
+      items: items.map((item) => ({
+        ...item,
+        visitedAt: item.visitedAt.toISOString(),
+      })),
+      total,
+      page: query.page,
+      pageSize: VISITS_PAGE_SIZE,
+    })
+  }
 
   register = async (
     req: Request<PatientParams>,
