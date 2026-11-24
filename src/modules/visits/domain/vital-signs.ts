@@ -31,7 +31,8 @@ type VitalSignsProps = MeasuredSigns & {
 // Faixas largas de propósito. Só barram erro de digitação (ex.: 380 °C no lugar de 38,0).
 // O escore não está aqui: a faixa dele depende da escala da espécie.
 const LIMITS: Record<keyof MeasuredSigns, { min: number; max: number }> = {
-  weightKg: { min: 0.01, max: 2000 },
+  // 0,001 kg = 1 g: peixes pequenos e filhotes de ave
+  weightKg: { min: 0.001, max: 2000 },
   temperatureC: { min: 25, max: 45 },
   heartRate: { min: 1, max: 400 },
   respiratoryRate: { min: 1, max: 200 },
