@@ -40,6 +40,7 @@ export class PrismaVisitRepository implements VisitRepository {
         userId: visit.userId,
         patientId: visit.patientId,
         authorType: visit.authorType,
+        type: visit.type,
         createdAt: visit.createdAt,
         soap: { create: this.toSoapRow(visit.soap) },
       },
@@ -119,6 +120,7 @@ export class PrismaVisitRepository implements VisitRepository {
     const where = {
       userId,
       ...LIVE_VISIT,
+      ...(filters.type && { type: filters.type }),
       ...(filters.speciesId && {
         patient: { breed: { speciesId: filters.speciesId } },
       }),
@@ -141,7 +143,13 @@ export class PrismaVisitRepository implements VisitRepository {
           id: true,
           visitedAt: true,
           authorType: true,
+          type: true,
           soap: { select: { assessment: true } },
+          vaccines: {
+            where: LIVE,
+            orderBy: { createdAt: 'asc' },
+            select: { name: true },
+          },
           patient: {
             select: {
               id: true,
@@ -166,6 +174,8 @@ export class PrismaVisitRepository implements VisitRepository {
         id: row.id,
         visitedAt: row.visitedAt,
         authorType: row.authorType,
+        type: row.type,
+        vaccines: row.vaccines.map((vaccine) => vaccine.name),
         assessment: row.soap?.assessment ?? null,
         patient: {
           id: row.patient.id,
@@ -237,7 +247,7 @@ export class PrismaVisitRepository implements VisitRepository {
     }
   }
 
-  // Os campos que o usuário pode mudar. O autor, o paciente e o snapshot nunca mudam.
+  // Os campos que o usuário pode mudar. O autor, o paciente, o snapshot e o tipo nunca mudam.
   private toRow(visit: Visit) {
     return {
       visitedAt: visit.visitedAt,
@@ -267,6 +277,7 @@ export class PrismaVisitRepository implements VisitRepository {
       userId: row.userId,
       patientId: row.patientId,
       authorType: row.authorType,
+      type: row.type,
       visitedAt: row.visitedAt,
       vitalSigns: VitalSigns.restore({
         weightKg: row.weightKg,

@@ -28,6 +28,7 @@ function toHttp(visit: Visit) {
     id: visit.id,
     patientId: visit.patientId,
     authorType: visit.authorType,
+    type: visit.type,
     visitedAt: visit.visitedAt.toISOString(),
     vitalSigns: {
       weightKg: visit.vitalSigns.weightKg,
@@ -64,6 +65,7 @@ export class VisitController {
     const { items, total } = await this.searchVisits.execute({
       userId: res.locals.userId,
       speciesId: query.speciesId,
+      type: query.type,
       from: toDate(query.from),
       to: toDate(query.to),
       page: query.page,

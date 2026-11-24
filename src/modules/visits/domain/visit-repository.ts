@@ -18,6 +18,9 @@ export type VisitSummary = {
   id: string
   visitedAt: Date
   authorType: Visit['authorType']
+  type: Visit['type']
+  // As vacinas do atendimento, pelo nome. Na vacinação, é o que o vet procura na lista
+  vaccines: string[]
   // A avaliação do SOAP (o diagnóstico), para o vet reconhecer o atendimento na lista
   assessment: string | null
   patient: {
@@ -31,6 +34,7 @@ export type VisitSummary = {
 
 export type VisitSearchFilters = {
   speciesId?: string | undefined
+  type?: Visit['type'] | undefined
   from?: Date | undefined
   to?: Date | undefined
   page: number

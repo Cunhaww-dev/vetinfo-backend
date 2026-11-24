@@ -85,4 +85,48 @@ describe('Visit', () => {
 
     expect(updated.authorType).toBe('student')
   })
+
+  describe('vacinação', () => {
+    const vaccination = (soap = {}) =>
+      Visit.create({
+        userId: 'user-1',
+        patientId: 'patient-1',
+        authorType: 'professional',
+        type: 'vaccination',
+        patientBirthDate: birthDate,
+        bodyConditionScale: '1-9',
+        visitedAt: new Date('2024-02-01T10:00:00Z'),
+        vitalSigns: { weightKg: 8 },
+        soap,
+      })
+
+    it('sem o tipo, o atendimento é consulta', () => {
+      const visit = create('2024-02-01T10:00:00Z').value as Visit
+      expect(visit.type).toBe('consultation')
+    })
+
+    it('aceita sinais vitais e SOAP vazio', () => {
+      const visit = vaccination({ plan: '   ' }).value as Visit
+      expect(visit.type).toBe('vaccination')
+      expect(visit.vitalSigns.weightKg).toBe(8)
+      expect(visit.soap.isEmpty()).toBe(true)
+    })
+
+    it('recusa SOAP na criação', () => {
+      expect(vaccination({ assessment: 'Gastroenterite' }).value).toMatchObject(
+        { code: 'VACCINATION_VISIT_HAS_NO_SOAP' },
+      )
+    })
+
+    it('recusa SOAP na edição, e o tipo não muda', () => {
+      const visit = vaccination().value as Visit
+      expect(
+        visit.update({ soap: { plan: 'Retorno' } }, dog).value,
+      ).toMatchObject({ code: 'VACCINATION_VISIT_HAS_NO_SOAP' })
+
+      const updated = visit.update({ vitalSigns: { weightKg: 9 } }, dog)
+        .value as Visit
+      expect(updated.type).toBe('vaccination')
+    })
+  })
 })

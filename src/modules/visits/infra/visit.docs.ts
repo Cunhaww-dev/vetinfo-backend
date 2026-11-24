@@ -42,6 +42,11 @@ const soapSchema = z
   })
   .meta({ id: 'Soap' })
 
+const visitTypeSchema = z.enum(['consultation', 'vaccination']).meta({
+  description:
+    'Consulta ou vacinação. Escolhido na criação e nunca muda. A vacinação não tem SOAP: ele vem sempre vazio',
+})
+
 const visitSchema = z
   .object({
     id: uuid,
@@ -50,6 +55,7 @@ const visitSchema = z
       description:
         'Snapshot do tipo do autor no dia do atendimento. Nunca muda. Base do badge "atendimento de estudante".',
     }),
+    type: visitTypeSchema,
     visitedAt: z.iso.datetime().meta({ example: '2026-11-01T13:00:00.000Z' }),
     vitalSigns: vitalSignsSchema,
     soap: soapSchema,
@@ -86,6 +92,11 @@ const visitSummarySchema = z
     id: uuid,
     visitedAt: z.iso.datetime(),
     authorType: z.enum(['professional', 'student']),
+    type: visitTypeSchema,
+    vaccines: z.array(z.string()).meta({
+      example: ['V10'],
+      description: 'Os nomes das vacinas do atendimento. Vazio = nenhuma',
+    }),
     assessment: z.string().nullable().meta({
       example: 'Gastroenterite',
       description: 'A avaliação do SOAP (o diagnóstico). null = vazia',
@@ -123,7 +134,7 @@ const visitNotFound = error(
   'Atendimento não existe ou é de outro usuário (VISIT_NOT_FOUND)',
 )
 const invalidVisit = error(
-  'Data no futuro (INVALID_VISIT_DATE), antes do nascimento do paciente (VISIT_BEFORE_BIRTH) ou sinal vital fora da faixa (INVALID_VITAL_SIGNS)',
+  'Data no futuro (INVALID_VISIT_DATE), antes do nascimento do paciente (VISIT_BEFORE_BIRTH), sinal vital fora da faixa (INVALID_VITAL_SIGNS) ou SOAP num atendimento de vacinação (VACCINATION_VISIT_HAS_NO_SOAP)',
 )
 
 export const visitPaths: ZodOpenApiPathsObject = {
@@ -133,7 +144,7 @@ export const visitPaths: ZodOpenApiPathsObject = {
       operationId: 'registerVisit',
       summary: 'Cria um atendimento',
       description:
-        'Todos os campos são opcionais. Sem `visitedAt`, vale a hora atual. Faixas: peso 0,01 a 2000 kg, temperatura 25 a 45 °C, FC 1 a 400, FR 1 a 200. O escore corporal segue a escala da espécie (`species.bodyConditionScale`): 1 a 9 com inteiros, ou 1 a 5 com passo de 0,5.',
+        'Todos os campos são opcionais. Sem `type`, é consulta. A vacinação não aceita SOAP: as vacinas e as observações dela vão pela rota de vacinas, com o `visitId`. Sem `visitedAt`, vale a hora atual. Faixas: peso 0,01 a 2000 kg, temperatura 25 a 45 °C, FC 1 a 400, FR 1 a 200. O escore corporal segue a escala da espécie (`species.bodyConditionScale`): 1 a 9 com inteiros, ou 1 a 5 com passo de 0,5.',
       requestParams: patientParams,
       requestBody: {
         content: { 'application/json': { schema: registerVisitSchema } },
@@ -182,7 +193,7 @@ export const visitPaths: ZodOpenApiPathsObject = {
       operationId: 'searchVisits',
       summary: 'Todos os atendimentos, com filtros',
       description:
-        'Os atendimentos de todos os pacientes do usuário, do mais novo ao mais antigo, 20 por página. Filtra por espécie e por período. Filtro inválido é ignorado, sem erro.',
+        'Os atendimentos de todos os pacientes do usuário, do mais novo ao mais antigo, 20 por página. Filtra por espécie, por tipo e por período. Filtro inválido é ignorado, sem erro.',
       requestParams: { query: searchVisitsQuerySchema },
       responses: {
         '200': json('Uma página de atendimentos', visitPageSchema),
@@ -236,7 +247,7 @@ export const visitPaths: ZodOpenApiPathsObject = {
       operationId: 'updateVisit',
       summary: 'Muda um atendimento',
       description:
-        'Campo ausente não muda. `null` apaga o campo. O autor e o `authorType` nunca mudam.',
+        'Campo ausente não muda. `null` apaga o campo. O autor, o `authorType` e o `type` nunca mudam.',
       requestParams: visitParams,
       requestBody: {
         content: { 'application/json': { schema: updateVisitSchema } },

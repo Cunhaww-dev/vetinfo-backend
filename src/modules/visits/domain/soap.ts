@@ -35,6 +35,16 @@ export class Soap {
     )
   }
 
+  // Nenhuma das 4 partes preenchida
+  isEmpty(): boolean {
+    return (
+      this.subjective === null &&
+      this.objective === null &&
+      this.assessment === null &&
+      this.plan === null
+    )
+  }
+
   change(changes: SoapInput): Soap {
     return new Soap(
       changes.subjective === undefined

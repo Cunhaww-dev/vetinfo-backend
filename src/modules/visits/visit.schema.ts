@@ -19,6 +19,10 @@ const soapSchema = z.object({
 // A data chega como texto "2026-11-06T14:30:00-03:00". O controller transforma em Date.
 // Sem a data, o atendimento fica com a hora atual.
 const fields = {
+  type: z.enum(['consultation', 'vaccination']).optional().meta({
+    description:
+      'Consulta (padrão) ou vacinação. A vacinação não tem SOAP. Nunca muda depois de criado',
+  }),
   visitedAt: z.iso.datetime({ offset: true }).optional(),
   vitalSigns: vitalSignsSchema.optional(),
   soap: soapSchema.optional(),
@@ -26,6 +30,7 @@ const fields = {
 
 export const registerVisitSchema = z.object(fields)
 
+// Sem o tipo: ele nunca muda. Se vier no corpo, o Zod tira.
 export const updateVisitSchema = z.object({
   visitedAt: fields.visitedAt,
   vitalSigns: vitalSignsSchema.partial().optional(),
@@ -52,6 +57,11 @@ export const searchVisitsQuerySchema = z.object({
     .optional()
     .catch(undefined)
     .meta({ description: 'Só os atendimentos de pacientes desta espécie' }),
+  type: z
+    .enum(['consultation', 'vaccination'])
+    .optional()
+    .catch(undefined)
+    .meta({ description: 'Só as consultas ou só as vacinações' }),
   from: z.iso.datetime({ offset: true }).optional().catch(undefined).meta({
     description: 'Atendidos a partir desta data e hora',
     example: '2026-11-01T00:00:00-03:00',

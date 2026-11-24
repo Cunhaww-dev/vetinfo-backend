@@ -198,12 +198,19 @@ model Patient {
 }
 
 // Atendimento. O userId é o autor (criado_por do DER) e também o escopo.
+enum VisitType {
+  consultation
+  vaccination
+}
+
 model Visit {
   id                 String              @id @default(uuid())
   userId             String              @map("user_id")
   user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
   // Snapshot do tipo do autor no momento da criação. Nunca muda.
   authorType         UserType            @map("author_type")
+  // Consulta (com SOAP) ou vacinação (sem SOAP). Nunca muda depois de criado.
+  type               VisitType           @default(consultation)
   patientId          String              @map("patient_id")
   patient            Patient             @relation(fields: [patientId], references: [id], onDelete: Restrict)
   visitedAt          DateTime            @map("visited_at")

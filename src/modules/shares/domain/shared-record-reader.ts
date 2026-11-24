@@ -6,6 +6,8 @@ export type SharedVisit = {
   id: string
   visitedAt: Date
   authorType: 'professional' | 'student'
+  // Na vacinação, o SOAP vem vazio
+  type: 'consultation' | 'vaccination'
   vitalSigns: {
     weightKg: number | null
     temperatureC: number | null
