@@ -18,4 +18,7 @@ export interface PatientRepository {
     userId: string,
     exceptId?: string,
   ): Promise<boolean>
+  // Apaga o paciente e revoga os códigos ativos dele, juntos.
+  // false = não existe, é de outro usuário ou já foi apagado
+  softDelete(id: string, userId: string): Promise<boolean>
 }

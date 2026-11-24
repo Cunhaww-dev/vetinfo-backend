@@ -8,4 +8,8 @@ export interface GuardianRepository {
   listByUser(userId: string): Promise<Guardian[]>
   update(guardian: Guardian): Promise<void>
   changeAddress(guardian: Guardian): Promise<void>
+  // Só os pacientes vivos
+  countPatients(guardianId: string): Promise<number>
+  // Apaga o tutor e revoga os códigos ativos feitos para ele, juntos
+  softDelete(id: string): Promise<void>
 }

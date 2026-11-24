@@ -4,6 +4,7 @@ import { sendFile } from '../../../shared/http/send-file.ts'
 import type { ChangePatientPhoto } from '../application/change-patient-photo.usecase.ts'
 import type { GetPatientPhoto } from '../application/get-patient-photo.usecase.ts'
 import type { RemovePatientPhoto } from '../application/remove-patient-photo.usecase.ts'
+import type { DeletePatient } from '../application/delete-patient.usecase.ts'
 import type { GetPatient } from '../application/get-patient.usecase.ts'
 import type { ListPatients } from '../application/list-patients.usecase.ts'
 import type { RegisterPatient } from '../application/register-patient.usecase.ts'
@@ -48,7 +49,21 @@ export class PatientController {
     private readonly changePatientPhoto: ChangePatientPhoto,
     private readonly getPatientPhoto: GetPatientPhoto,
     private readonly removePatientPhoto: RemovePatientPhoto,
+    private readonly deletePatient: DeletePatient,
   ) {}
+
+  remove = async (
+    req: Request<PatientParams>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    const result = await this.deletePatient.execute({
+      userId: res.locals.userId,
+      patientId: req.params.patientId,
+    })
+    if (result.isLeft()) throw result.value
+
+    return res.status(204).send()
+  }
 
   register = async (req: Request, res: Response<unknown, AuthLocals>) => {
     const result = await this.registerPatient.execute({

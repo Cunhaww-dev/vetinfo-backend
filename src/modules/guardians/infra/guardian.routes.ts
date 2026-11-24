@@ -4,6 +4,7 @@ import { validateBody } from '../../../shared/http/validate-body.middleware.ts'
 import { prisma } from '../../../shared/prisma/client.ts'
 import { ChangeGuardianAddress } from '../application/change-guardian-address.usecase.ts'
 import { CreateGuardian } from '../application/create-guardian.usecase.ts'
+import { DeleteGuardian } from '../application/delete-guardian.usecase.ts'
 import { GetGuardian } from '../application/get-guardian.usecase.ts'
 import { ListGuardians } from '../application/list-guardians.usecase.ts'
 import { UpdateGuardian } from '../application/update-guardian.usecase.ts'
@@ -23,6 +24,7 @@ const controller = new GuardianController(
   new GetGuardian(guardianRepository),
   new UpdateGuardian(guardianRepository),
   new ChangeGuardianAddress(guardianRepository),
+  new DeleteGuardian(guardianRepository),
 )
 
 export const guardianRouter = Router()
@@ -42,6 +44,7 @@ guardianRouter.patch(
   validateBody(updateGuardianSchema),
   controller.update,
 )
+guardianRouter.delete('/guardians/:guardianId', controller.remove)
 guardianRouter.put(
   '/guardians/:guardianId/address',
   validateBody(addressSchema),
