@@ -62,6 +62,14 @@ describe('Visit', () => {
     expect(create(at, { bodyConditionScore: 3.25 }, '1-5').isLeft()).toBe(true)
   })
 
+  it('peso: aceita 1 g, recusa menos', () => {
+    const at = '2024-02-01T10:00:00Z'
+    expect(create(at, { weightKg: 0.001 }).isRight()).toBe(true)
+    expect(create(at, { weightKg: 0.0009 }).value).toMatchObject({
+      code: 'INVALID_VITAL_SIGNS',
+    })
+  })
+
   it('sem escore, a escala fica null', () => {
     const visit = create('2024-02-01T10:00:00Z').value as Visit
     expect(visit.vitalSigns.bodyConditionScale).toBeNull()

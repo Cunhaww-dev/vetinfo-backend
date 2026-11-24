@@ -144,7 +144,7 @@ export const visitPaths: ZodOpenApiPathsObject = {
       operationId: 'registerVisit',
       summary: 'Cria um atendimento',
       description:
-        'Todos os campos são opcionais. Sem `type`, é consulta. A vacinação não aceita SOAP: as vacinas e as observações dela vão pela rota de vacinas, com o `visitId`. Sem `visitedAt`, vale a hora atual. Faixas: peso 0,01 a 2000 kg, temperatura 25 a 45 °C, FC 1 a 400, FR 1 a 200. O escore corporal segue a escala da espécie (`species.bodyConditionScale`): 1 a 9 com inteiros, ou 1 a 5 com passo de 0,5.',
+        'Todos os campos são opcionais. Sem `type`, é consulta. A vacinação não aceita SOAP: as vacinas e as observações dela vão pela rota de vacinas, com o `visitId`. Sem `visitedAt`, vale a hora atual. Faixas: peso 0,001 a 2000 kg (1 g a 2 t), temperatura 25 a 45 °C, FC 1 a 400, FR 1 a 200. O escore corporal segue a escala da espécie (`species.bodyConditionScale`): 1 a 9 com inteiros, ou 1 a 5 com passo de 0,5.',
       requestParams: patientParams,
       requestBody: {
         content: { 'application/json': { schema: registerVisitSchema } },
