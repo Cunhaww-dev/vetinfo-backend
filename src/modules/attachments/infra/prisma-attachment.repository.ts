@@ -7,7 +7,11 @@ import type {
   AttachmentRepository,
   AttachmentType,
 } from '../domain/attachment-repository.ts'
-import { LIVE, LIVE_IN_VISIT } from '../../../shared/prisma/not-deleted.ts'
+import {
+  LIVE,
+  LIVE_IN_VISIT,
+  LIVE_VISIT,
+} from '../../../shared/prisma/not-deleted.ts'
 
 export class PrismaAttachmentRepository implements AttachmentRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -50,7 +54,7 @@ export class PrismaAttachmentRepository implements AttachmentRepository {
     userId: string,
   ): Promise<Attachment[]> {
     const rows = await this.prisma.attachment.findMany({
-      where: { userId, deletedAt: null, visit: { patientId, deletedAt: null } },
+      where: { userId, deletedAt: null, visit: { patientId, ...LIVE_VISIT } },
       orderBy: { createdAt: 'desc' },
     })
     return rows.map((row) => this.toDomain(row))
@@ -58,7 +62,7 @@ export class PrismaAttachmentRepository implements AttachmentRepository {
 
   async visitExists(visitId: string, userId: string): Promise<boolean> {
     const count = await this.prisma.visit.count({
-      where: { id: visitId, userId, ...LIVE },
+      where: { id: visitId, userId, ...LIVE_VISIT },
     })
     return count > 0
   }
@@ -75,7 +79,7 @@ export class PrismaAttachmentRepository implements AttachmentRepository {
 
   async patientExists(patientId: string, userId: string): Promise<boolean> {
     const count = await this.prisma.patient.count({
-      where: { id: patientId, userId },
+      where: { id: patientId, userId, ...LIVE },
     })
     return count > 0
   }

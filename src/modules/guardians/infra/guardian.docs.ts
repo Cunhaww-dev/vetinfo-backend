@@ -124,6 +124,20 @@ export const guardianPaths: ZodOpenApiPathsObject = {
         '422': invalidData,
       },
     },
+    delete: {
+      tags: ['Guardians'],
+      operationId: 'deleteGuardian',
+      summary: 'Apaga um tutor (soft delete)',
+      description:
+        'Só sai o tutor sem pacientes: antes, apague os pacientes dele ou troque o tutor deles. Os dados ficam no banco (soft delete). Os códigos ativos feitos para o tutor são revogados. O CPF fica livre para um cadastro novo. Não tem volta pela API.',
+      requestParams: guardianParams,
+      responses: {
+        '204': { description: 'Tutor apagado' },
+        '401': unauthorized,
+        '404': notFound,
+        '409': error('O tutor ainda tem pacientes (GUARDIAN_HAS_PATIENTS)'),
+      },
+    },
   },
   '/guardians/{guardianId}/address': {
     put: {

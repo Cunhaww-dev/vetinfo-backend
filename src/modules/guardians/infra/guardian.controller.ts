@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 import type { AuthLocals } from '../../../shared/http/ensure-authenticated.middleware.ts'
 import type { ChangeGuardianAddress } from '../application/change-guardian-address.usecase.ts'
 import type { CreateGuardian } from '../application/create-guardian.usecase.ts'
+import type { DeleteGuardian } from '../application/delete-guardian.usecase.ts'
 import type { GetGuardian } from '../application/get-guardian.usecase.ts'
 import type { ListGuardians } from '../application/list-guardians.usecase.ts'
 import type { UpdateGuardian } from '../application/update-guardian.usecase.ts'
@@ -50,7 +51,21 @@ export class GuardianController {
     private readonly getGuardian: GetGuardian,
     private readonly updateGuardian: UpdateGuardian,
     private readonly changeGuardianAddress: ChangeGuardianAddress,
+    private readonly deleteGuardian: DeleteGuardian,
   ) {}
+
+  remove = async (
+    req: Request<GuardianParams>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    const result = await this.deleteGuardian.execute({
+      userId: res.locals.userId,
+      guardianId: req.params.guardianId,
+    })
+    if (result.isLeft()) throw result.value
+
+    return res.status(204).send()
+  }
 
   create = async (req: Request, res: Response<unknown, AuthLocals>) => {
     const { name, phone, email, cpf, birthDate, address } = req.body

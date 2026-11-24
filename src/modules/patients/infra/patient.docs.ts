@@ -124,6 +124,21 @@ export const patientPaths: ZodOpenApiPathsObject = {
         '422': invalidBirthDate,
       },
     },
+    delete: {
+      tags: ['Patients'],
+      operationId: 'deletePatient',
+      summary: 'Apaga um paciente (soft delete)',
+      description:
+        'O paciente some do app com os atendimentos, vacinas, medicações e anexos dele. Os dados ficam no banco (soft delete). Os códigos de compartilhamento ativos que mostram o paciente são revogados. O microchip fica livre para um cadastro novo. Não tem volta pela API.',
+      requestParams: patientParams,
+      responses: {
+        '204': { description: 'Paciente apagado' },
+        '401': unauthorized,
+        '404': error(
+          'Paciente não existe, é de outro usuário ou já foi apagado (PATIENT_NOT_FOUND)',
+        ),
+      },
+    },
   },
   '/patients/{patientId}/photo': {
     put: {

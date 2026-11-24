@@ -3,6 +3,7 @@ import type {
   Guardian as GuardianRow,
   PrismaClient,
 } from '../../../generated/prisma/client.ts'
+import { LIVE } from '../../../shared/prisma/not-deleted.ts'
 import { Address } from '../domain/address.ts'
 import { Cpf } from '../domain/cpf.ts'
 import { Guardian } from '../domain/guardian-entity.ts'
@@ -34,15 +35,15 @@ export class PrismaGuardianRepository implements GuardianRepository {
 
   async findById(id: string, userId: string): Promise<Guardian | null> {
     const row = await this.prisma.guardian.findFirst({
-      where: { id, userId },
+      where: { id, userId, ...LIVE },
       include: CURRENT_ADDRESS,
     })
     return row ? this.toDomain(row) : null
   }
 
   async findByCpf(cpf: string, userId: string): Promise<Guardian | null> {
-    const row = await this.prisma.guardian.findUnique({
-      where: { userId_cpf: { userId, cpf } },
+    const row = await this.prisma.guardian.findFirst({
+      where: { userId, cpf, ...LIVE },
       include: CURRENT_ADDRESS,
     })
     return row ? this.toDomain(row) : null
@@ -50,7 +51,7 @@ export class PrismaGuardianRepository implements GuardianRepository {
 
   async listByUser(userId: string): Promise<Guardian[]> {
     const rows = await this.prisma.guardian.findMany({
-      where: { userId },
+      where: { userId, ...LIVE },
       include: CURRENT_ADDRESS,
       orderBy: { name: 'asc' },
     })
@@ -85,6 +86,24 @@ export class PrismaGuardianRepository implements GuardianRepository {
           guardianId: guardian.id,
           ...this.toAddressRow(guardian.address),
         },
+      }),
+    ])
+  }
+
+  async countPatients(guardianId: string): Promise<number> {
+    return this.prisma.patient.count({ where: { guardianId, ...LIVE } })
+  }
+
+  async softDelete(id: string): Promise<void> {
+    const now = new Date()
+    await this.prisma.$transaction([
+      this.prisma.guardian.update({
+        where: { id },
+        data: { deletedAt: now },
+      }),
+      this.prisma.share.updateMany({
+        where: { guardianId: id, revokedAt: null },
+        data: { revokedAt: now },
       }),
     ])
   }

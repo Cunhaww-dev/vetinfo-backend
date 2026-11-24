@@ -7,7 +7,11 @@ import type {
   MedicationRepository,
   MedicationVisit,
 } from '../domain/medication-repository.ts'
-import { LIVE, LIVE_IN_VISIT } from '../../../shared/prisma/not-deleted.ts'
+import {
+  LIVE,
+  LIVE_IN_VISIT,
+  LIVE_VISIT,
+} from '../../../shared/prisma/not-deleted.ts'
 
 // A mais nova primeiro. Com o mesmo início, ganha a última cadastrada
 const NEWEST_FIRST = [
@@ -58,7 +62,7 @@ export class PrismaMedicationRepository implements MedicationRepository {
     userId: string,
   ): Promise<Medication[]> {
     const rows = await this.prisma.medication.findMany({
-      where: { userId, deletedAt: null, visit: { patientId, deletedAt: null } },
+      where: { userId, deletedAt: null, visit: { patientId, ...LIVE_VISIT } },
       orderBy: NEWEST_FIRST,
     })
     return rows.map((row) => this.toDomain(row))
@@ -69,7 +73,7 @@ export class PrismaMedicationRepository implements MedicationRepository {
     userId: string,
   ): Promise<MedicationVisit | null> {
     return this.prisma.visit.findFirst({
-      where: { id: visitId, userId, ...LIVE },
+      where: { id: visitId, userId, ...LIVE_VISIT },
       select: { id: true, visitedAt: true },
     })
   }
@@ -85,7 +89,7 @@ export class PrismaMedicationRepository implements MedicationRepository {
 
   async patientExists(patientId: string, userId: string): Promise<boolean> {
     const count = await this.prisma.patient.count({
-      where: { id: patientId, userId },
+      where: { id: patientId, userId, ...LIVE },
     })
     return count > 0
   }
