@@ -121,6 +121,9 @@ export class PrismaVisitRepository implements VisitRepository {
       userId,
       ...LIVE_VISIT,
       ...(filters.type && { type: filters.type }),
+      ...(filters.status && {
+        finishedAt: filters.status === 'open' ? null : { not: null },
+      }),
       ...(filters.speciesId && {
         patient: { breed: { speciesId: filters.speciesId } },
       }),
@@ -144,6 +147,7 @@ export class PrismaVisitRepository implements VisitRepository {
           visitedAt: true,
           authorType: true,
           type: true,
+          finishedAt: true,
           soap: { select: { assessment: true } },
           vaccines: {
             where: LIVE,
@@ -175,6 +179,7 @@ export class PrismaVisitRepository implements VisitRepository {
         visitedAt: row.visitedAt,
         authorType: row.authorType,
         type: row.type,
+        finishedAt: row.finishedAt,
         vaccines: row.vaccines.map((vaccine) => vaccine.name),
         assessment: row.soap?.assessment ?? null,
         patient: {
@@ -251,6 +256,7 @@ export class PrismaVisitRepository implements VisitRepository {
   private toRow(visit: Visit) {
     return {
       visitedAt: visit.visitedAt,
+      finishedAt: visit.finishedAt,
       weightKg: visit.vitalSigns.weightKg,
       temperatureC: visit.vitalSigns.temperatureC,
       heartRate: visit.vitalSigns.heartRate,
@@ -291,6 +297,7 @@ export class PrismaVisitRepository implements VisitRepository {
       }),
       // O create sempre grava o SOAP. O Soap.create() só cobre uma linha criada fora da API.
       soap: row.soap ? Soap.restore(row.soap) : Soap.create(),
+      finishedAt: row.finishedAt,
       createdAt: row.createdAt,
     })
   }

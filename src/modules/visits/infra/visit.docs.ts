@@ -47,6 +47,12 @@ const visitTypeSchema = z.enum(['consultation', 'vaccination']).meta({
     'Consulta ou vacinação. Escolhido na criação e nunca muda. A vacinação não tem SOAP: ele vem sempre vazio',
 })
 
+const finishedAtSchema = z.iso.datetime().nullable().meta({
+  example: '2026-11-01T13:40:00.000Z',
+  description:
+    'null = em andamento. Com data = finalizado, e quando. Finalizar não trava a edição',
+})
+
 const visitSchema = z
   .object({
     id: uuid,
@@ -57,6 +63,7 @@ const visitSchema = z
     }),
     type: visitTypeSchema,
     visitedAt: z.iso.datetime().meta({ example: '2026-11-01T13:00:00.000Z' }),
+    finishedAt: finishedAtSchema,
     vitalSigns: vitalSignsSchema,
     soap: soapSchema,
   })
@@ -93,6 +100,7 @@ const visitSummarySchema = z
     visitedAt: z.iso.datetime(),
     authorType: z.enum(['professional', 'student']),
     type: visitTypeSchema,
+    finishedAt: finishedAtSchema,
     vaccines: z.array(z.string()).meta({
       example: ['V10'],
       description: 'Os nomes das vacinas do atendimento. Vazio = nenhuma',
@@ -193,7 +201,7 @@ export const visitPaths: ZodOpenApiPathsObject = {
       operationId: 'searchVisits',
       summary: 'Todos os atendimentos, com filtros',
       description:
-        'Os atendimentos de todos os pacientes do usuário, do mais novo ao mais antigo, 20 por página. Filtra por espécie, por tipo e por período. Filtro inválido é ignorado, sem erro.',
+        'Os atendimentos de todos os pacientes do usuário, do mais novo ao mais antigo, 20 por página. Filtra por espécie, por tipo, por status e por período. Filtro inválido é ignorado, sem erro.',
       requestParams: { query: searchVisitsQuerySchema },
       responses: {
         '200': json('Uma página de atendimentos', visitPageSchema),
@@ -212,6 +220,21 @@ export const visitPaths: ZodOpenApiPathsObject = {
       responses: {
         '200': json('Os pacientes', z.array(recentPatientSchema)),
         '401': unauthorized,
+      },
+    },
+  },
+  '/visits/{visitId}/finish': {
+    post: {
+      tags: ['Visits'],
+      operationId: 'finishVisit',
+      summary: 'Finaliza um atendimento',
+      description:
+        'Marca o atendimento como finalizado, com a data de agora. Finalizar de novo não é erro: a data continua a da primeira vez. Depois de finalizado, o atendimento ainda pode ser editado.',
+      requestParams: visitParams,
+      responses: {
+        '200': json('O atendimento finalizado', visitSchema),
+        '401': unauthorized,
+        '404': visitNotFound,
       },
     },
   },

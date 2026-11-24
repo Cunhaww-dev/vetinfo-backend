@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { PrismaVisitRepository } from '../../src/modules/visits/infra/prisma-visit.repository.ts'
 import { prisma } from '../../src/shared/prisma/client.ts'
 
-// A tela de atendimentos filtra pelo tipo e mostra as vacinas da vacinação
+// A tela de atendimentos filtra pelo tipo e pelo status, e mostra as vacinas da vacinação
 
 const VET = randomUUID()
 const ids = {
@@ -95,5 +95,27 @@ describe('tipo do atendimento', () => {
   it('o tipo volta do banco', async () => {
     const visit = await visits.findById(ids.vaccination, VET)
     expect(visit?.type).toBe('vaccination')
+  })
+})
+
+describe('status do atendimento', () => {
+  it('o filtro separa os em andamento dos finalizados', async () => {
+    const visit = await visits.findById(ids.consultation, VET)
+    await visits.update(visit!.finish())
+
+    const open = await visits.search(VET, {
+      status: 'open',
+      page: 1,
+      pageSize: 20,
+    })
+    const finished = await visits.search(VET, {
+      status: 'finished',
+      page: 1,
+      pageSize: 20,
+    })
+
+    expect(open.items.map(({ id }) => id)).toEqual([ids.vaccination])
+    expect(finished.items.map(({ id }) => id)).toEqual([ids.consultation])
+    expect(finished.items[0].finishedAt).toBeInstanceOf(Date)
   })
 })
