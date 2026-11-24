@@ -367,7 +367,7 @@ enum ShareType {
 }
 
 // Código de acesso somente leitura, criado pelo veterinário.
-// Revogar só preenche o revokedAt. O limite de usos é contado em ShareUse.
+// Revogar só preenche o revokedAt. Cada acesso fica em ShareUse (auditoria).
 model Share {
   id            String      @id @default(uuid())
   userId        String      @map("user_id")
@@ -399,7 +399,7 @@ model ShareItem {
   @@map("share_items")
 }
 
-// Cada acesso pelo código. Serve para o limite de usos e para a auditoria.
+// Cada acesso pelo código. Serve para a auditoria.
 model ShareUse {
   id        String   @id @default(uuid())
   shareId   String   @map("share_id")
