@@ -4,6 +4,7 @@ import type {
   BodyConditionScale as ScaleRow,
 } from '../../../generated/prisma/client.ts'
 import { scaleFromRow } from '../../../shared/prisma/body-condition-scale.ts'
+import { LIVE } from '../../../shared/prisma/not-deleted.ts'
 import { Patient, type PatientBreed } from '../domain/patient-entity.ts'
 import type { PatientRepository } from '../domain/patient-repository.ts'
 
@@ -52,7 +53,7 @@ export class PrismaPatientRepository implements PatientRepository {
 
   async findById(id: string, userId: string): Promise<Patient | null> {
     const row = await this.prisma.patient.findFirst({
-      where: { id, userId },
+      where: { id, userId, ...LIVE },
       include: WITH_BREED,
     })
     return row ? this.toDomain(row) : null
@@ -65,6 +66,7 @@ export class PrismaPatientRepository implements PatientRepository {
     const rows = await this.prisma.patient.findMany({
       where: {
         userId,
+        ...LIVE,
         ...(filters.guardianId && { guardianId: filters.guardianId }),
       },
       include: WITH_BREED,
@@ -83,7 +85,7 @@ export class PrismaPatientRepository implements PatientRepository {
 
   async guardianExists(guardianId: string, userId: string): Promise<boolean> {
     const count = await this.prisma.guardian.count({
-      where: { id: guardianId, userId },
+      where: { id: guardianId, userId, ...LIVE },
     })
     return count > 0
   }
@@ -94,9 +96,33 @@ export class PrismaPatientRepository implements PatientRepository {
     exceptId?: string,
   ): Promise<boolean> {
     const count = await this.prisma.patient.count({
-      where: { microchip, userId, ...(exceptId && { NOT: { id: exceptId } }) },
+      where: {
+        microchip,
+        userId,
+        ...LIVE,
+        ...(exceptId && { NOT: { id: exceptId } }),
+      },
     })
     return count > 0
+  }
+
+  // As 2 escritas andam juntas: o paciente some e nenhum código continua mostrando ele.
+  // O código com outros pacientes também cai: o vet cria um novo, sem o apagado.
+  async softDelete(id: string, userId: string): Promise<boolean> {
+    return this.prisma.$transaction(async (tx) => {
+      const now = new Date()
+      const { count } = await tx.patient.updateMany({
+        where: { id, userId, ...LIVE },
+        data: { deletedAt: now },
+      })
+      if (count === 0) return false
+
+      await tx.share.updateMany({
+        where: { userId, revokedAt: null, items: { some: { patientId: id } } },
+        data: { revokedAt: now },
+      })
+      return true
+    })
   }
 
   // Os campos que o usuário pode mudar. O id, o dono e o createdAt nunca mudam.

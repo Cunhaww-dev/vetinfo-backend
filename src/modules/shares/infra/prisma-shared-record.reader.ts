@@ -5,7 +5,11 @@ import type {
   SharedRecordReader,
 } from '../domain/shared-record-reader.ts'
 import { scaleFromRow } from '../../../shared/prisma/body-condition-scale.ts'
-import { LIVE, LIVE_VACCINE } from '../../../shared/prisma/not-deleted.ts'
+import {
+  LIVE,
+  LIVE_VACCINE,
+  LIVE_VISIT,
+} from '../../../shared/prisma/not-deleted.ts'
 
 // O prontuário que o código mostra: paciente, atendimentos com SOAP, medicações,
 // anexos e vacinas. Nada do tutor (nome, telefone, CPF) sai por aqui.
@@ -18,7 +22,7 @@ export class PrismaSharedRecordReader implements SharedRecordReader {
     options: { hideMicrochip: boolean },
   ): Promise<SharedPatient[]> {
     const rows = await this.prisma.patient.findMany({
-      where: { id: { in: patientIds }, userId: ownerId },
+      where: { id: { in: patientIds }, userId: ownerId, ...LIVE },
       orderBy: { name: 'asc' },
       include: {
         breed: { include: { species: true } },
@@ -107,7 +111,7 @@ export class PrismaSharedRecordReader implements SharedRecordReader {
         id: attachmentId,
         userId: ownerId,
         deletedAt: null,
-        visit: { patientId: { in: patientIds }, deletedAt: null },
+        visit: { patientId: { in: patientIds }, ...LIVE_VISIT },
       },
       select: { fileName: true, contentType: true, storageKey: true },
     })

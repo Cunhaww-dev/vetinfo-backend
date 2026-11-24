@@ -1,4 +1,5 @@
 import type { PrismaClient } from '../../../generated/prisma/client.ts'
+import { LIVE } from '../../../shared/prisma/not-deleted.ts'
 import { Share } from '../domain/share-entity.ts'
 import type {
   SharePatient,
@@ -100,14 +101,14 @@ export class PrismaShareRepository implements ShareRepository {
 
   async findPatients(ids: string[], userId: string): Promise<SharePatient[]> {
     return this.prisma.patient.findMany({
-      where: { id: { in: ids }, userId },
+      where: { id: { in: ids }, userId, ...LIVE },
       select: { id: true, guardianId: true },
     })
   }
 
   async guardianExists(guardianId: string, userId: string): Promise<boolean> {
     const count = await this.prisma.guardian.count({
-      where: { id: guardianId, userId },
+      where: { id: guardianId, userId, ...LIVE },
     })
     return count > 0
   }

@@ -2,6 +2,7 @@ import type {
   GuardianConsent as ConsentRow,
   PrismaClient,
 } from '../../../generated/prisma/client.ts'
+import { LIVE } from '../../../shared/prisma/not-deleted.ts'
 import { GuardianConsent } from '../domain/consent-entity.ts'
 import type {
   ConsentPatient,
@@ -68,7 +69,7 @@ export class PrismaConsentRepository implements ConsentRepository {
     userId: string,
   ): Promise<ConsentPatient | null> {
     return this.prisma.patient.findFirst({
-      where: { id: patientId, userId },
+      where: { id: patientId, userId, ...LIVE },
       select: { id: true, guardianId: true },
     })
   }

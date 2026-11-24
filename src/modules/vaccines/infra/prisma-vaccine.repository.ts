@@ -12,6 +12,7 @@ import type {
 import {
   LIVE,
   LIVE_IN_VISIT,
+  LIVE_VISIT,
   LIVE_VACCINE,
 } from '../../../shared/prisma/not-deleted.ts'
 
@@ -122,7 +123,7 @@ export class PrismaVaccineRepository implements VaccineRepository {
     userId: string,
   ): Promise<VaccinePatient | null> {
     return this.prisma.patient.findFirst({
-      where: { id: patientId, userId },
+      where: { id: patientId, userId, ...LIVE },
       select: { id: true, birthDate: true },
     })
   }
@@ -132,7 +133,7 @@ export class PrismaVaccineRepository implements VaccineRepository {
     userId: string,
   ): Promise<VaccineVisit | null> {
     return this.prisma.visit.findFirst({
-      where: { id: visitId, userId, ...LIVE },
+      where: { id: visitId, userId, ...LIVE_VISIT },
       select: { id: true, patientId: true, visitedAt: true },
     })
   }
