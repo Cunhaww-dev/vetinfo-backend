@@ -162,15 +162,16 @@ A resposta traz a raça e a espécie com o nome (`breed` e `species`), além do 
 
 ### Atendimentos e SOAP (`Visit`)
 
-| Método | Rota                                      | O que faz                                                          |
-| ------ | ----------------------------------------- | ------------------------------------------------------------------ |
-| POST   | `/patients/:patientId/visits`             | Cria o atendimento com sinais vitais e SOAP                        |
-| GET    | `/patients/:patientId/visits`             | Histórico de atendimentos do paciente, do mais novo ao mais antigo |
-| GET    | `/patients/:patientId/vital-signs/latest` | Últimos sinais vitais, para sugerir no novo atendimento            |
-| GET    | `/visits/recent?limit=3`                  | Pacientes atendidos há pouco, um por paciente (limit de 1 a 10)    |
-| GET    | `/visits/:visitId`                        | Mostra um atendimento                                              |
-| PATCH  | `/visits/:visitId`                        | Muda data, sinais vitais ou SOAP. O autor nunca muda               |
-| DELETE | `/visits/:visitId`                        | Apaga o atendimento (soft delete), com o que está nele             |
+| Método | Rota                                      | O que faz                                                           |
+| ------ | ----------------------------------------- | ------------------------------------------------------------------- |
+| POST   | `/patients/:patientId/visits`             | Cria o atendimento com sinais vitais e SOAP                         |
+| GET    | `/patients/:patientId/visits`             | Histórico de atendimentos do paciente, do mais novo ao mais antigo  |
+| GET    | `/patients/:patientId/vital-signs/latest` | Últimos sinais vitais, para sugerir no novo atendimento             |
+| GET    | `/visits?speciesId=&from=&to=&page=`      | Todos os atendimentos, 20 por página, com filtro por espécie e data |
+| GET    | `/visits/recent?limit=3`                  | Pacientes atendidos há pouco, um por paciente (limit de 1 a 10)     |
+| GET    | `/visits/:visitId`                        | Mostra um atendimento                                               |
+| PATCH  | `/visits/:visitId`                        | Muda data, sinais vitais ou SOAP. O autor nunca muda                |
+| DELETE | `/visits/:visitId`                        | Apaga o atendimento (soft delete), com o que está nele              |
 
 **Escore corporal:** a escala vem da espécie do paciente, nunca do cliente. A resposta manda o `bodyConditionScale` junto com o `bodyConditionScore`, porque um 5 na escala de 1 a 5 é obeso, e na de 1 a 9 é ideal. Se a pessoa edita outro sinal vital, o escore salvo fica com a escala dele.
 

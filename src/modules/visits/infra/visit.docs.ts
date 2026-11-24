@@ -10,6 +10,7 @@ import {
 import {
   recentPatientsQuerySchema,
   registerVisitSchema,
+  searchVisitsQuerySchema,
   updateVisitSchema,
 } from '../visit.schema.ts'
 import { bodyConditionScaleSchema } from '../../../shared/docs/body-condition-scale.ts'
@@ -80,6 +81,39 @@ const recentPatientSchema = z
   })
   .meta({ id: 'RecentPatient' })
 
+const visitSummarySchema = z
+  .object({
+    id: uuid,
+    visitedAt: z.iso.datetime(),
+    authorType: z.enum(['professional', 'student']),
+    assessment: z.string().nullable().meta({
+      example: 'Gastroenterite',
+      description: 'A avaliação do SOAP (o diagnóstico). null = vazia',
+    }),
+    patient: z.object({
+      id: uuid,
+      name: z.string().meta({ example: 'Thor' }),
+      species: z.object({
+        id: uuid,
+        name: z.string().meta({ example: 'Cão' }),
+      }),
+      breed: z.object({ id: uuid, name: z.string().meta({ example: 'SRD' }) }),
+    }),
+    guardian: z
+      .object({ id: uuid, name: z.string().meta({ example: 'Ana Souza' }) })
+      .nullable(),
+  })
+  .meta({ id: 'VisitSummary' })
+
+const visitPageSchema = z
+  .object({
+    items: z.array(visitSummarySchema),
+    total: z.int().meta({ example: 42, description: 'Total com os filtros' }),
+    page: z.int().meta({ example: 1 }),
+    pageSize: z.int().meta({ example: 20 }),
+  })
+  .meta({ id: 'VisitPage' })
+
 const patientParams = { path: z.object({ patientId: uuid }) }
 const visitParams = { path: z.object({ visitId: uuid }) }
 const patientNotFound = error(
@@ -139,6 +173,20 @@ export const visitPaths: ZodOpenApiPathsObject = {
         '200': json('Os sinais vitais, ou null', latestVitalSignsSchema),
         '401': unauthorized,
         '404': patientNotFound,
+      },
+    },
+  },
+  '/visits': {
+    get: {
+      tags: ['Visits'],
+      operationId: 'searchVisits',
+      summary: 'Todos os atendimentos, com filtros',
+      description:
+        'Os atendimentos de todos os pacientes do usuário, do mais novo ao mais antigo, 20 por página. Filtra por espécie e por período. Filtro inválido é ignorado, sem erro.',
+      requestParams: { query: searchVisitsQuerySchema },
+      responses: {
+        '200': json('Uma página de atendimentos', visitPageSchema),
+        '401': unauthorized,
       },
     },
   },

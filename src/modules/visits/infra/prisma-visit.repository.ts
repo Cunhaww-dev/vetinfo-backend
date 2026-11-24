@@ -9,6 +9,8 @@ import type {
   RecentPatient,
   VisitPatient,
   VisitRepository,
+  VisitSearchFilters,
+  VisitSearchResult,
 } from '../domain/visit-repository.ts'
 import { VitalSigns } from '../domain/vital-signs.ts'
 import {
@@ -107,6 +109,73 @@ export class PrismaVisitRepository implements VisitRepository {
         species: row.patient.breed.species, // para o ícone da espécie na sidebar
       },
     }))
+  }
+
+  // A contagem e a página rodam juntas, na mesma transação
+  async search(
+    userId: string,
+    filters: VisitSearchFilters,
+  ): Promise<VisitSearchResult> {
+    const where = {
+      userId,
+      ...LIVE,
+      ...(filters.speciesId && {
+        patient: { breed: { speciesId: filters.speciesId } },
+      }),
+      ...((filters.from || filters.to) && {
+        visitedAt: {
+          ...(filters.from && { gte: filters.from }),
+          ...(filters.to && { lte: filters.to }),
+        },
+      }),
+    }
+
+    const [total, rows] = await this.prisma.$transaction([
+      this.prisma.visit.count({ where }),
+      this.prisma.visit.findMany({
+        where,
+        orderBy: NEWEST_FIRST,
+        skip: (filters.page - 1) * filters.pageSize,
+        take: filters.pageSize,
+        select: {
+          id: true,
+          visitedAt: true,
+          authorType: true,
+          soap: { select: { assessment: true } },
+          patient: {
+            select: {
+              id: true,
+              name: true,
+              breed: {
+                select: {
+                  id: true,
+                  name: true,
+                  species: { select: { id: true, name: true } },
+                },
+              },
+              guardian: { select: { id: true, name: true } },
+            },
+          },
+        },
+      }),
+    ])
+
+    return {
+      total,
+      items: rows.map((row) => ({
+        id: row.id,
+        visitedAt: row.visitedAt,
+        authorType: row.authorType,
+        assessment: row.soap?.assessment ?? null,
+        patient: {
+          id: row.patient.id,
+          name: row.patient.name,
+          species: row.patient.breed.species,
+          breed: { id: row.patient.breed.id, name: row.patient.breed.name },
+        },
+        guardian: row.patient.guardian,
+      })),
+    }
   }
 
   // O último atendimento com pelo menos um sinal vital preenchido

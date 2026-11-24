@@ -43,3 +43,28 @@ export const recentPatientsQuerySchema = z.object({
     .catch(3)
     .meta({ description: 'Quantos pacientes, de 1 a 10. O padrão é 3' }),
 })
+
+// Filtros da tela de atendimentos. Valor inválido vira "sem filtro", sem erro,
+// igual ao ?limit= acima. As datas têm fuso: o front manda o começo e o fim do dia dele.
+export const searchVisitsQuerySchema = z.object({
+  speciesId: z
+    .uuid()
+    .optional()
+    .catch(undefined)
+    .meta({ description: 'Só os atendimentos de pacientes desta espécie' }),
+  from: z.iso.datetime({ offset: true }).optional().catch(undefined).meta({
+    description: 'Atendidos a partir desta data e hora',
+    example: '2026-11-01T00:00:00-03:00',
+  }),
+  to: z.iso.datetime({ offset: true }).optional().catch(undefined).meta({
+    description: 'Atendidos até esta data e hora',
+    example: '2026-11-30T23:59:59-03:00',
+  }),
+  page: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .default(1)
+    .catch(1)
+    .meta({ description: 'A página, a partir de 1. Cada página tem 20 itens' }),
+})

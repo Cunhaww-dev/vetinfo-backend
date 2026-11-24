@@ -13,6 +13,35 @@ export type RecentPatient = {
   }
 }
 
+// Só leitura, para a tela de atendimentos. Um item por atendimento.
+export type VisitSummary = {
+  id: string
+  visitedAt: Date
+  authorType: Visit['authorType']
+  // A avaliação do SOAP (o diagnóstico), para o vet reconhecer o atendimento na lista
+  assessment: string | null
+  patient: {
+    id: string
+    name: string
+    species: { id: string; name: string }
+    breed: { id: string; name: string }
+  }
+  guardian: { id: string; name: string } | null
+}
+
+export type VisitSearchFilters = {
+  speciesId?: string | undefined
+  from?: Date | undefined
+  to?: Date | undefined
+  page: number
+  pageSize: number
+}
+
+export type VisitSearchResult = {
+  items: VisitSummary[]
+  total: number
+}
+
 // Só o que o atendimento precisa saber do paciente
 export type VisitPatient = {
   birthDate: Date | null
@@ -33,6 +62,11 @@ export interface VisitRepository {
   patientExists(patientId: string, userId: string): Promise<boolean>
   findPatient(patientId: string, userId: string): Promise<VisitPatient | null>
   listRecentPatients(userId: string, limit: number): Promise<RecentPatient[]>
+  // Todos os atendimentos do usuário, do mais novo ao mais antigo, com filtros
+  search(
+    userId: string,
+    filters: VisitSearchFilters,
+  ): Promise<VisitSearchResult>
   // false = não existe, é de outro usuário ou já foi apagado
   softDelete(id: string, userId: string): Promise<boolean>
 }
