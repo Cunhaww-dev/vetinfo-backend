@@ -135,13 +135,14 @@ O VetInfo atende todas as espécies. O seed tem 13: cão, gato, equino, ave, bov
 
 ### Tutores (`Guardian`)
 
-| Método | Rota                             | O que faz                                |
-| ------ | -------------------------------- | ---------------------------------------- |
-| POST   | `/guardians`                     | Cria o tutor, com ou sem endereço        |
-| GET    | `/guardians`                     | Lista os tutores do usuário              |
-| GET    | `/guardians/:guardianId`         | Mostra um tutor com o endereço atual     |
-| PATCH  | `/guardians/:guardianId`         | Muda os dados do tutor                   |
-| PUT    | `/guardians/:guardianId/address` | Muda o endereço, o antigo vira histórico |
+| Método | Rota                             | O que faz                                 |
+| ------ | -------------------------------- | ----------------------------------------- |
+| POST   | `/guardians`                     | Cria o tutor, com ou sem endereço         |
+| GET    | `/guardians`                     | Lista os tutores do usuário               |
+| GET    | `/guardians/:guardianId`         | Mostra um tutor com o endereço atual      |
+| PATCH  | `/guardians/:guardianId`         | Muda os dados do tutor                    |
+| DELETE | `/guardians/:guardianId`         | Apaga o tutor sem pacientes (soft delete) |
+| PUT    | `/guardians/:guardianId/address` | Muda o endereço, o antigo vira histórico  |
 
 Nome, telefone, e-mail e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O telefone aceita máscara (`(21) 99999-0000`), precisa de 10 ou 11 números com um DDD que existe (`INVALID_PHONE`) e fica guardado só com os números. O CPF é opcional: a API aceita com máscara (`529.982.247-25`), valida os dígitos verificadores e guarda só os 11 números. O mesmo CPF não pode repetir entre os tutores de um usuário (`CPF_ALREADY_IN_USE`). Na lista (`GET /guardians`), o CPF vem mascarado (`***.982.247-**`), por minimização de dados (LGPD). O detalhe, o cadastro e a edição mostram o CPF inteiro.
 
@@ -149,12 +150,13 @@ Nome, telefone, e-mail e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O
 
 Nome, sexo, raça e data de nascimento (`YYYY-MM-DD`) são obrigatórios. O nascimento não aceita `null` no `PATCH`.
 
-| Método | Rota                   | O que faz                                           |
-| ------ | ---------------------- | --------------------------------------------------- |
-| POST   | `/patients`            | Cria o paciente (o tutor é opcional)                |
-| GET    | `/patients`            | Lista os pacientes (filtro opcional `?guardianId=`) |
-| GET    | `/patients/:patientId` | Mostra um paciente                                  |
-| PATCH  | `/patients/:patientId` | Muda qualquer campo, `null` apaga o campo           |
+| Método | Rota                   | O que faz                                            |
+| ------ | ---------------------- | ---------------------------------------------------- |
+| POST   | `/patients`            | Cria o paciente (o tutor é opcional)                 |
+| GET    | `/patients`            | Lista os pacientes (filtro opcional `?guardianId=`)  |
+| GET    | `/patients/:patientId` | Mostra um paciente                                   |
+| PATCH  | `/patients/:patientId` | Muda qualquer campo, `null` apaga o campo            |
+| DELETE | `/patients/:patientId` | Apaga o paciente com tudo o que é dele (soft delete) |
 
 A resposta traz a raça e a espécie com o nome (`breed` e `species`), além do `breedId`.
 
@@ -266,7 +268,7 @@ O código tem 10 caracteres, sem letras que confundem (0/O, 1/I/L), e vale 7 dia
 
 ### Soft delete
 
-Atendimento, medicação, vacina e anexo podem ser apagados com `DELETE` (resposta 204). Eles não saem do banco: a coluna `deleted_at` recebe a data, e todas as consultas pulam o registro. O prontuário é um documento clínico, então nada some de verdade. Apagar o atendimento esconde também as medicações, as vacinas e os anexos dele. O arquivo do anexo fica no storage. O consentimento não tem `DELETE`: ele tem a revogação.
+Paciente, tutor, atendimento, medicação, vacina e anexo podem ser apagados com `DELETE` (resposta 204). Eles não saem do banco: a coluna `deleted_at` recebe a data, e todas as consultas pulam o registro. O prontuário é um documento clínico, então nada some de verdade. Apagar o atendimento esconde também as medicações, as vacinas e os anexos dele. Apagar o paciente esconde os atendimentos e as vacinas dele, e revoga os códigos ativos que mostram o paciente. O tutor só sai sem pacientes (`GUARDIAN_HAS_PATIENTS`, 409), e os códigos feitos para ele são revogados. O microchip e o CPF só não repetem entre os registros vivos: um índice parcial (`WHERE deleted_at IS NULL`) permite cadastrar de novo o que foi apagado. O arquivo do anexo fica no storage. O consentimento não tem `DELETE`: ele tem a revogação.
 
 ### Erros
 
@@ -277,7 +279,7 @@ Todo erro sai no mesmo formato: `{ "code": "...", "message": "..." }`.
 | 400    | Corpo fora do formato (`VALIDATION_ERROR`) ou JSON quebrado (`INVALID_JSON`)              |
 | 401    | Sem sessão (`UNAUTHORIZED`)                                                               |
 | 404    | O registro não existe **ou é de outro usuário**, ou a rota não existe (`ROUTE_NOT_FOUND`) |
-| 409    | Conflito (ex.: `EMAIL_ALREADY_IN_USE`, `CPF_ALREADY_IN_USE`)                              |
+| 409    | Conflito (ex.: `EMAIL_ALREADY_IN_USE`, `CPF_ALREADY_IN_USE`, `GUARDIAN_HAS_PATIENTS`)     |
 | 410    | Existiu, mas não vale mais (ex.: `SHARE_NOT_AVAILABLE`)                                   |
 | 422    | Regra de domínio (ex.: `INVALID_CPF`, `INVALID_BIRTH_DATE`)                               |
 | 500    | Erro inesperado (`INTERNAL_ERROR`), sempre em JSON                                        |

@@ -7,6 +7,7 @@ import { fileStorage } from '../../../shared/storage/storage.ts'
 import { ChangePatientPhoto } from '../application/change-patient-photo.usecase.ts'
 import { GetPatientPhoto } from '../application/get-patient-photo.usecase.ts'
 import { RemovePatientPhoto } from '../application/remove-patient-photo.usecase.ts'
+import { DeletePatient } from '../application/delete-patient.usecase.ts'
 import { GetPatient } from '../application/get-patient.usecase.ts'
 import { ListPatients } from '../application/list-patients.usecase.ts'
 import { RegisterPatient } from '../application/register-patient.usecase.ts'
@@ -30,6 +31,7 @@ const controller = new PatientController(
   new ChangePatientPhoto(patientRepository, fileStorage),
   new GetPatientPhoto(patientRepository, fileStorage),
   new RemovePatientPhoto(patientRepository, fileStorage),
+  new DeletePatient(patientRepository),
 )
 
 export const patientRouter = Router()
@@ -49,6 +51,7 @@ patientRouter.patch(
   validateBody(updatePatientSchema),
   controller.update,
 )
+patientRouter.delete('/patients/:patientId', controller.remove)
 patientRouter.put(
   '/patients/:patientId/photo',
   uploadFile(MAX_PHOTO_SIZE_MB),
