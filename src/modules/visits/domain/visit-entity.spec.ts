@@ -129,4 +129,27 @@ describe('Visit', () => {
       expect(updated.type).toBe('vaccination')
     })
   })
+
+  describe('finalizar', () => {
+    it('começa em andamento e finaliza com a data de agora', () => {
+      const visit = create('2024-02-01T10:00:00Z').value as Visit
+      expect(visit.finishedAt).toBeNull()
+
+      expect(visit.finish().finishedAt).toBeInstanceOf(Date)
+    })
+
+    it('finalizar de novo mantém a primeira data', () => {
+      const finished = (create('2024-02-01T10:00:00Z').value as Visit).finish()
+      expect(finished.finish()).toBe(finished)
+    })
+
+    it('editar depois de finalizar funciona e não reabre', () => {
+      const finished = (create('2024-02-01T10:00:00Z').value as Visit).finish()
+      const updated = finished.update({ soap: { plan: 'Retorno' } }, dog)
+        .value as Visit
+
+      expect(updated.soap.plan).toBe('Retorno')
+      expect(updated.finishedAt).toBe(finished.finishedAt)
+    })
+  })
 })

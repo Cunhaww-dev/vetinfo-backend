@@ -62,6 +62,9 @@ export const searchVisitsQuerySchema = z.object({
     .optional()
     .catch(undefined)
     .meta({ description: 'Só as consultas ou só as vacinações' }),
+  status: z.enum(['open', 'finished']).optional().catch(undefined).meta({
+    description: 'open = em andamento, finished = finalizados',
+  }),
   from: z.iso.datetime({ offset: true }).optional().catch(undefined).meta({
     description: 'Atendidos a partir desta data e hora',
     example: '2026-11-01T00:00:00-03:00',

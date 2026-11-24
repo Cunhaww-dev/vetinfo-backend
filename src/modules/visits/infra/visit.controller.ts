@@ -14,6 +14,7 @@ import {
   searchVisitsQuerySchema,
 } from '../visit.schema.ts'
 import type { DeleteVisit } from '../application/delete-visit.usecase.ts'
+import type { FinishVisit } from '../application/finish-visit.usecase.ts'
 
 type PatientParams = { patientId: string }
 type VisitParams = { visitId: string }
@@ -30,6 +31,7 @@ function toHttp(visit: Visit) {
     authorType: visit.authorType,
     type: visit.type,
     visitedAt: visit.visitedAt.toISOString(),
+    finishedAt: visit.finishedAt?.toISOString() ?? null,
     vitalSigns: {
       weightKg: visit.vitalSigns.weightKg,
       temperatureC: visit.vitalSigns.temperatureC,
@@ -57,7 +59,21 @@ export class VisitController {
     private readonly listRecentPatients: ListRecentPatients,
     private readonly deleteVisit: DeleteVisit,
     private readonly searchVisits: SearchVisits,
+    private readonly finishVisit: FinishVisit,
   ) {}
+
+  finish = async (
+    req: Request<VisitParams>,
+    res: Response<unknown, AuthLocals>,
+  ) => {
+    const result = await this.finishVisit.execute({
+      userId: res.locals.userId,
+      visitId: req.params.visitId,
+    })
+    if (result.isLeft()) throw result.value
+
+    return res.status(200).json(toHttp(result.value))
+  }
 
   search = async (req: Request, res: Response<unknown, AuthLocals>) => {
     const query = searchVisitsQuerySchema.parse(req.query)
@@ -66,6 +82,7 @@ export class VisitController {
       userId: res.locals.userId,
       speciesId: query.speciesId,
       type: query.type,
+      status: query.status,
       from: toDate(query.from),
       to: toDate(query.to),
       page: query.page,
@@ -75,6 +92,7 @@ export class VisitController {
       items: items.map((item) => ({
         ...item,
         visitedAt: item.visitedAt.toISOString(),
+        finishedAt: item.finishedAt?.toISOString() ?? null,
       })),
       total,
       page: query.page,

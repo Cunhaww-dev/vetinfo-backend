@@ -43,6 +43,7 @@ type RestoreVisitProps = {
   visitedAt: Date
   vitalSigns: VitalSigns
   soap: Soap
+  finishedAt: Date | null
   createdAt: Date
 }
 
@@ -67,6 +68,8 @@ export class Visit {
     readonly visitedAt: Date,
     readonly vitalSigns: VitalSigns,
     readonly soap: Soap,
+    // null = em andamento. Finalizar não trava a edição.
+    readonly finishedAt: Date | null,
     readonly createdAt: Date,
   ) {}
 
@@ -97,6 +100,7 @@ export class Visit {
         visitedAt,
         vitalSigns.value,
         soap,
+        null, // todo atendimento começa em andamento
         new Date(),
       ),
     )
@@ -133,8 +137,26 @@ export class Visit {
         visitedAt,
         vitalSigns.value,
         soap,
+        this.finishedAt,
         this.createdAt,
       ),
+    )
+  }
+
+  // Finalizar de novo não muda nada: fica a data da primeira vez
+  finish(): Visit {
+    if (this.finishedAt) return this
+    return new Visit(
+      this.id,
+      this.userId,
+      this.patientId,
+      this.authorType,
+      this.type,
+      this.visitedAt,
+      this.vitalSigns,
+      this.soap,
+      new Date(),
+      this.createdAt,
     )
   }
 
@@ -148,6 +170,7 @@ export class Visit {
       props.visitedAt,
       props.vitalSigns,
       props.soap,
+      props.finishedAt,
       props.createdAt,
     )
   }
