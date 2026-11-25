@@ -141,6 +141,9 @@ const patientNotFound = error(
 const visitNotFound = error(
   'Atendimento não existe ou é de outro usuário (VISIT_NOT_FOUND)',
 )
+const vaccinationWithoutVaccine = error(
+  'Vacinação sem nenhuma vacina (VACCINATION_VISIT_WITHOUT_VACCINE)',
+)
 const invalidVisit = error(
   'Data no futuro (INVALID_VISIT_DATE), antes do nascimento do paciente (VISIT_BEFORE_BIRTH), sinal vital fora da faixa (INVALID_VITAL_SIGNS) ou SOAP num atendimento de vacinação (VACCINATION_VISIT_HAS_NO_SOAP)',
 )
@@ -229,12 +232,13 @@ export const visitPaths: ZodOpenApiPathsObject = {
       operationId: 'finishVisit',
       summary: 'Finaliza um atendimento',
       description:
-        'Marca o atendimento como finalizado, com a data de agora. Finalizar de novo não é erro: a data continua a da primeira vez. Depois de finalizado, o atendimento ainda pode ser editado.',
+        'Marca o atendimento como finalizado, com a data de agora. Finalizar de novo não é erro: a data continua a da primeira vez. Depois de finalizado, o atendimento ainda pode ser editado. A vacinação só finaliza com pelo menos 1 vacina.',
       requestParams: visitParams,
       responses: {
         '200': json('O atendimento finalizado', visitSchema),
         '401': unauthorized,
         '404': visitNotFound,
+        '422': vaccinationWithoutVaccine,
       },
     },
   },
