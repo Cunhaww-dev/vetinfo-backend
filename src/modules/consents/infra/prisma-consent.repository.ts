@@ -74,6 +74,22 @@ export class PrismaConsentRepository implements ConsentRepository {
     })
   }
 
+  // O Prisma não compara 2 colunas no where. O filtro do tutor atual fica aqui:
+  // o consentimento de um tutor antigo não libera o paciente.
+  async listConsentedPatientIds(userId: string): Promise<string[]> {
+    const rows = await this.prisma.guardianConsent.findMany({
+      where: { userId, revokedAt: null, patient: LIVE },
+      select: {
+        patientId: true,
+        guardianId: true,
+        patient: { select: { guardianId: true } },
+      },
+    })
+    return rows
+      .filter((row) => row.patient.guardianId === row.guardianId)
+      .map((row) => row.patientId)
+  }
+
   private toDomain(row: ConsentRow): GuardianConsent {
     return GuardianConsent.restore({
       id: row.id,

@@ -223,6 +223,8 @@ describe('escopo por usuário: B não enxerga o dado de A', () => {
     expect(await repo.findById(ids.consent, A)).not.toBeNull()
     expect(await repo.findById(ids.consent, B)).toBeNull()
     expect(await repo.findPatient(ids.patient, B)).toBeNull()
+    expect(await repo.listConsentedPatientIds(A)).toEqual([ids.patient])
+    expect(await repo.listConsentedPatientIds(B)).toEqual([])
   })
 
   it('compartilhamento', async () => {

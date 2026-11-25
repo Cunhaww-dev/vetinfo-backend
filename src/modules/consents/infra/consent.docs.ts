@@ -72,6 +72,24 @@ export const consentPaths: ZodOpenApiPathsObject = {
       },
     },
   },
+  '/consents/active': {
+    get: {
+      tags: ['Consents'],
+      operationId: 'listConsentedPatients',
+      summary: 'Pacientes com consentimento ativo',
+      description:
+        'Os ids dos pacientes do usuário que têm consentimento ativo do **tutor atual**. É a lista que pode ir num código para estudo.',
+      responses: {
+        '200': json(
+          'Os ids dos pacientes liberados para estudo',
+          z
+            .object({ patientIds: z.array(uuid) })
+            .meta({ id: 'ConsentedPatients' }),
+        ),
+        '401': unauthorized,
+      },
+    },
+  },
   '/consents/{consentId}/revoke': {
     post: {
       tags: ['Consents'],

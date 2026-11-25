@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 import type { AuthLocals } from '../../../shared/http/ensure-authenticated.middleware.ts'
+import type { ListConsentedPatients } from '../application/list-consented-patients.usecase.ts'
 import type { ListConsents } from '../application/list-consents.usecase.ts'
 import type { RegisterConsent } from '../application/register-consent.usecase.ts'
 import type { RevokeConsent } from '../application/revoke-consent.usecase.ts'
@@ -27,6 +28,7 @@ export class ConsentController {
     private readonly registerConsent: RegisterConsent,
     private readonly listConsents: ListConsents,
     private readonly revokeConsent: RevokeConsent,
+    private readonly listConsentedPatients: ListConsentedPatients,
   ) {}
 
   register = async (
@@ -69,5 +71,12 @@ export class ConsentController {
     if (result.isLeft()) throw result.value
 
     return res.status(200).json(toHttp(result.value))
+  }
+
+  listActive = async (_req: Request, res: Response<unknown, AuthLocals>) => {
+    const patientIds = await this.listConsentedPatients.execute({
+      userId: res.locals.userId,
+    })
+    return res.status(200).json({ patientIds })
   }
 }
