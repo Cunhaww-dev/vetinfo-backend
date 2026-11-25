@@ -14,4 +14,6 @@ export interface ConsentRepository {
     guardianId: string,
   ): Promise<GuardianConsent | null>
   findPatient(patientId: string, userId: string): Promise<ConsentPatient | null>
+  // Os pacientes vivos do usuário com consentimento ativo do tutor atual
+  listConsentedPatientIds(userId: string): Promise<string[]>
 }

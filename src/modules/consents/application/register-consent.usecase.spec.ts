@@ -37,6 +37,9 @@ class InMemoryConsentRepository implements ConsentRepository {
       null
     )
   }
+  async listConsentedPatientIds() {
+    return []
+  }
 }
 
 describe('RegisterConsent', () => {
