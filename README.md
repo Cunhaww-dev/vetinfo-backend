@@ -250,6 +250,7 @@ O arquivo vai no campo `file`, junto com `typeId` e `description`. Aceita PDF, J
 | ------ | ------------------------------- | --------------------------------------------- |
 | POST   | `/patients/:patientId/consents` | Registra que o tutor atual aceitou o termo    |
 | GET    | `/patients/:patientId/consents` | Histórico, com os revogados (rastreabilidade) |
+| GET    | `/consents/active`              | Os pacientes com consentimento ativo          |
 | POST   | `/consents/:consentId/revoke`   | Revoga o consentimento. Sem volta             |
 
 O consentimento autoriza o compartilhamento do paciente para estudo (estudante ou outro profissional). Ele tem peso legal, então nunca é apagado nem editado: revogar só preenche o `revokedAt`, e o tutor assina um novo se mudar de ideia. Só existe um consentimento ativo por tutor e paciente (índice único parcial no banco). Só vale o consentimento do **tutor atual** do paciente: paciente sem tutor não tem como dar consentimento (`PATIENT_WITHOUT_GUARDIAN`).
