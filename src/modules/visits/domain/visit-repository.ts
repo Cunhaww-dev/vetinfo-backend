@@ -74,6 +74,8 @@ export interface VisitRepository {
     userId: string,
     filters: VisitSearchFilters,
   ): Promise<VisitSearchResult>
+  // As vacinas vivas do atendimento. A vacinação só finaliza com pelo menos 1
+  countVaccines(visitId: string, userId: string): Promise<number>
   // false = não existe, é de outro usuário ou já foi apagado
   softDelete(id: string, userId: string): Promise<boolean>
 }

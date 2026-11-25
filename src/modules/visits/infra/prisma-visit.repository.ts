@@ -217,6 +217,12 @@ export class PrismaVisitRepository implements VisitRepository {
     return row ? this.toDomain(row) : null
   }
 
+  async countVaccines(visitId: string, userId: string): Promise<number> {
+    return this.prisma.vaccine.count({
+      where: { visitId, userId, deletedAt: null },
+    })
+  }
+
   // Soft delete: o atendimento some, e com ele as medicações, vacinas e anexos dele
   async softDelete(id: string, userId: string): Promise<boolean> {
     const { count } = await this.prisma.visit.updateMany({

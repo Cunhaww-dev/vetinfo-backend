@@ -119,3 +119,12 @@ describe('status do atendimento', () => {
     expect(finished.items[0].finishedAt).toBeInstanceOf(Date)
   })
 })
+
+describe('vacinas do atendimento', () => {
+  it('conta só as vacinas vivas do atendimento', async () => {
+    expect(await visits.countVaccines(ids.vaccination, VET)).toBe(2)
+    expect(await visits.countVaccines(ids.consultation, VET)).toBe(0)
+    // Outro usuário não enxerga as vacinas
+    expect(await visits.countVaccines(ids.vaccination, randomUUID())).toBe(0)
+  })
+})
