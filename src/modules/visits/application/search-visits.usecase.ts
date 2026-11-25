@@ -4,8 +4,6 @@ import type {
   VisitSearchResult,
 } from '../domain/visit-repository.ts'
 
-export const VISITS_PAGE_SIZE = 20
-
 type SearchVisitsInput = {
   userId: string
   speciesId?: string | undefined
@@ -14,6 +12,7 @@ type SearchVisitsInput = {
   from?: Date | undefined
   to?: Date | undefined
   page: number
+  pageSize: number
 }
 
 // A tela de atendimentos: todos os atendimentos do usuário, de todos os pacientes.
@@ -29,7 +28,7 @@ export class SearchVisits {
       from: input.from,
       to: input.to,
       page: input.page,
-      pageSize: VISITS_PAGE_SIZE,
+      pageSize: input.pageSize,
     })
   }
 }

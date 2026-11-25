@@ -169,7 +169,7 @@ A resposta traz a raça e a espécie com o nome (`breed` e `species`), além do 
 | POST   | `/patients/:patientId/visits`                      | Cria uma consulta (com SOAP) ou uma vacinação (sem SOAP)                          |
 | GET    | `/patients/:patientId/visits`                      | Histórico de atendimentos do paciente, do mais novo ao mais antigo                |
 | GET    | `/patients/:patientId/vital-signs/latest`          | Últimos sinais vitais, para sugerir no novo atendimento                           |
-| GET    | `/visits?speciesId=&type=&status=&from=&to=&page=` | Todos os atendimentos, 20 por página, com filtro por espécie, tipo, status e data |
+| GET    | `/visits?speciesId=&type=&status=&from=&to=&page=&pageSize=` | Todos os atendimentos, 10 a 50 por página (padrão 10), com filtro por espécie, tipo, status e data |
 | GET    | `/visits/recent?limit=3`                           | Pacientes atendidos há pouco, um por paciente (limit de 1 a 10)                   |
 | GET    | `/visits/:visitId`                                 | Mostra um atendimento                                                             |
 | PATCH  | `/visits/:visitId`                                 | Muda data, sinais vitais ou SOAP. O autor e o tipo nunca mudam                    |

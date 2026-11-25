@@ -129,7 +129,7 @@ const visitPageSchema = z
     items: z.array(visitSummarySchema),
     total: z.int().meta({ example: 42, description: 'Total com os filtros' }),
     page: z.int().meta({ example: 1 }),
-    pageSize: z.int().meta({ example: 20 }),
+    pageSize: z.int().meta({ example: 10 }),
   })
   .meta({ id: 'VisitPage' })
 

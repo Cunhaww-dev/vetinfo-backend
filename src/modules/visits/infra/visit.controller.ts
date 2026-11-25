@@ -8,7 +8,6 @@ import type { RegisterVisit } from '../application/register-visit.usecase.ts'
 import type { UpdateVisit } from '../application/update-visit.usecase.ts'
 import type { Visit } from '../domain/visit-entity.ts'
 import type { SearchVisits } from '../application/search-visits.usecase.ts'
-import { VISITS_PAGE_SIZE } from '../application/search-visits.usecase.ts'
 import {
   recentPatientsQuerySchema,
   searchVisitsQuerySchema,
@@ -86,6 +85,7 @@ export class VisitController {
       from: toDate(query.from),
       to: toDate(query.to),
       page: query.page,
+      pageSize: query.pageSize,
     })
 
     return res.status(200).json({
@@ -96,7 +96,7 @@ export class VisitController {
       })),
       total,
       page: query.page,
-      pageSize: VISITS_PAGE_SIZE,
+      pageSize: query.pageSize,
     })
   }
 

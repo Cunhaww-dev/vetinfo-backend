@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DEFAULT_PAGE_SIZE, PAGE_SIZES } from '../../shared/http/pagination.ts'
 
 // O Zod confere o formato (número, inteiro). As faixas aceitas são regra do domínio (VitalSigns).
 const vitalSignsSchema = z.object({
@@ -79,5 +80,15 @@ export const searchVisitsQuerySchema = z.object({
     .min(1)
     .default(1)
     .catch(1)
-    .meta({ description: 'A página, a partir de 1. Cada página tem 20 itens' }),
+    .meta({ description: 'A página, a partir de 1' }),
+  // Fora da lista (ex.: 1000), vale o padrão: ninguém pede a tabela inteira
+  pageSize: z.coerce
+    .number()
+    .refine((size) => PAGE_SIZES.some((option) => option === size))
+    .default(DEFAULT_PAGE_SIZE)
+    .catch(DEFAULT_PAGE_SIZE)
+    .meta({
+      description: `Itens por página: ${PAGE_SIZES.join(', ')}`,
+      example: DEFAULT_PAGE_SIZE,
+    }),
 })
