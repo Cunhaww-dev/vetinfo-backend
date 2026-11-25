@@ -164,23 +164,23 @@ A resposta traz a raça e a espécie com o nome (`breed` e `species`), além do 
 
 ### Atendimentos e SOAP (`Visit`)
 
-| Método | Rota                                               | O que faz                                                                         |
-| ------ | -------------------------------------------------- | --------------------------------------------------------------------------------- |
-| POST   | `/patients/:patientId/visits`                      | Cria uma consulta (com SOAP) ou uma vacinação (sem SOAP)                          |
-| GET    | `/patients/:patientId/visits`                      | Histórico de atendimentos do paciente, do mais novo ao mais antigo                |
-| GET    | `/patients/:patientId/vital-signs/latest`          | Últimos sinais vitais, para sugerir no novo atendimento                           |
+| Método | Rota                                                         | O que faz                                                                                          |
+| ------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| POST   | `/patients/:patientId/visits`                                | Cria uma consulta (com SOAP) ou uma vacinação (sem SOAP)                                           |
+| GET    | `/patients/:patientId/visits`                                | Histórico de atendimentos do paciente, do mais novo ao mais antigo                                 |
+| GET    | `/patients/:patientId/vital-signs/latest`                    | Últimos sinais vitais, para sugerir no novo atendimento                                            |
 | GET    | `/visits?speciesId=&type=&status=&from=&to=&page=&pageSize=` | Todos os atendimentos, 10 a 50 por página (padrão 10), com filtro por espécie, tipo, status e data |
-| GET    | `/visits/recent?limit=3`                           | Pacientes atendidos há pouco, um por paciente (limit de 1 a 10)                   |
-| GET    | `/visits/:visitId`                                 | Mostra um atendimento                                                             |
-| PATCH  | `/visits/:visitId`                                 | Muda data, sinais vitais ou SOAP. O autor e o tipo nunca mudam                    |
-| POST   | `/visits/:visitId/finish`                          | Finaliza o atendimento. Finalizar de novo não muda a data                         |
-| DELETE | `/visits/:visitId`                                 | Apaga o atendimento (soft delete), com o que está nele                            |
+| GET    | `/visits/recent?limit=3`                                     | Pacientes atendidos há pouco, um por paciente (limit de 1 a 10)                                    |
+| GET    | `/visits/:visitId`                                           | Mostra um atendimento                                                                              |
+| PATCH  | `/visits/:visitId`                                           | Muda data, sinais vitais ou SOAP. O autor e o tipo nunca mudam                                     |
+| POST   | `/visits/:visitId/finish`                                    | Finaliza o atendimento. Finalizar de novo não muda a data                                          |
+| DELETE | `/visits/:visitId`                                           | Apaga o atendimento (soft delete), com o que está nele                                             |
 
 **Escore corporal:** a escala vem da espécie do paciente, nunca do cliente. A resposta manda o `bodyConditionScale` junto com o `bodyConditionScore`, porque um 5 na escala de 1 a 5 é obeso, e na de 1 a 9 é ideal. Se a pessoa edita outro sinal vital, o escore salvo fica com a escala dele.
 
 **Em andamento ou finalizado:** o atendimento nasce em andamento (`finishedAt: null`). O `POST /visits/:visitId/finish` grava a data em que ele acabou. Finalizar não trava a edição: o vet ainda corrige um erro de digitação. Os atendimentos de antes dessa regra viraram finalizados na migration. O filtro `status=open` da tela de atendimentos acha os que ficaram em aberto.
 
-**Consulta ou vacinação:** o `type` é `consultation` (o padrão) ou `vaccination`. Ele é escolhido na criação e nunca muda. A vacinação não tem SOAP: se vier SOAP, a API responde 422 (`VACCINATION_VISIT_HAS_NO_SOAP`). As vacinas entram depois pela rota de vacinas, com o `visitId`, e o que o vet anota (ex.: "sem reação") vai nas observações da vacina.
+**Consulta ou vacinação:** o `type` é `consultation` (o padrão) ou `vaccination`. Ele é escolhido na criação e nunca muda. A vacinação não tem SOAP: se vier SOAP, a API responde 422 (`VACCINATION_VISIT_HAS_NO_SOAP`). As vacinas entram depois pela rota de vacinas, com o `visitId`, e o que o vet anota (ex.: "sem reação") vai nas observações da vacina. A vacinação só finaliza com pelo menos 1 vacina: sem ela, o `finish` responde 422 (`VACCINATION_VISIT_WITHOUT_VACCINE`).
 
 Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opcionais; sem `type`, é consulta; sem `visitedAt`, vale a hora atual):
 
