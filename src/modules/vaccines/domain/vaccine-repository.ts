@@ -2,7 +2,12 @@ import type { Vaccine } from './vaccine-entity.ts'
 
 // Só o que a vacina precisa saber do paciente e do atendimento
 export type VaccinePatient = { id: string; birthDate: Date }
-export type VaccineVisit = { id: string; patientId: string; visitedAt: Date }
+export type VaccineVisit = {
+  id: string
+  patientId: string
+  visitedAt: Date
+  finishedAt: Date | null
+}
 
 // Só leitura, para o lembrete de revacinação. Não é uma entidade.
 export type DueVaccine = {

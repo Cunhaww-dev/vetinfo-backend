@@ -134,7 +134,7 @@ export class PrismaVaccineRepository implements VaccineRepository {
   ): Promise<VaccineVisit | null> {
     return this.prisma.visit.findFirst({
       where: { id: visitId, userId, ...LIVE_VISIT },
-      select: { id: true, patientId: true, visitedAt: true },
+      select: { id: true, patientId: true, visitedAt: true, finishedAt: true },
     })
   }
 

@@ -125,13 +125,16 @@ export const vaccinePaths: ZodOpenApiPathsObject = {
       operationId: 'deleteVaccine',
       summary: 'Apaga uma vacina (soft delete)',
       description:
-        'A vacina some do app, do lembrete e do compartilhamento. Fica no banco (soft delete).',
+        'A vacina some do app, do lembrete e do compartilhamento. Fica no banco (soft delete). A vacina de um atendimento finalizado não pode ser apagada.',
       requestParams: { path: z.object({ vaccineId: uuid }) },
       responses: {
         '204': { description: 'Vacina apagada' },
         '401': unauthorized,
         '404': error(
           'Vacina não existe, é de outro usuário ou já foi apagada (VACCINE_NOT_FOUND)',
+        ),
+        '409': error(
+          'A vacina é de um atendimento finalizado e não pode ser apagada (VACCINE_IN_FINISHED_VISIT)',
         ),
       },
     },
