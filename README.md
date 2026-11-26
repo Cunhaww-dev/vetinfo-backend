@@ -180,7 +180,7 @@ A resposta traz a raça e a espécie com o nome (`breed` e `species`), além do 
 
 **Em andamento ou finalizado:** o atendimento nasce em andamento (`finishedAt: null`). O `POST /visits/:visitId/finish` grava a data em que ele acabou. Finalizar não trava a edição: o vet ainda corrige um erro de digitação. Os atendimentos de antes dessa regra viraram finalizados na migration. O filtro `status=open` da tela de atendimentos acha os que ficaram em aberto.
 
-**Consulta ou vacinação:** o `type` é `consultation` (o padrão) ou `vaccination`. Ele é escolhido na criação e nunca muda. A vacinação não tem SOAP: se vier SOAP, a API responde 422 (`VACCINATION_VISIT_HAS_NO_SOAP`). As vacinas entram depois pela rota de vacinas, com o `visitId`, e o que o vet anota (ex.: "sem reação") vai nas observações da vacina. A vacinação só finaliza com pelo menos 1 vacina: sem ela, o `finish` responde 422 (`VACCINATION_VISIT_WITHOUT_VACCINE`).
+**Consulta ou vacinação:** o `type` é `consultation` (o padrão) ou `vaccination`. Ele é escolhido na criação e nunca muda. A vacinação não tem SOAP: se vier SOAP, a API responde 422 (`VACCINATION_VISIT_HAS_NO_SOAP`). As vacinas entram depois pela rota de vacinas, com o `visitId`, e o que o vet anota (ex.: "sem reação") vai nas observações da vacina. A vacinação só finaliza com pelo menos 1 vacina: sem ela, o `finish` responde 422 (`VACCINATION_VISIT_WITHOUT_VACCINE`). Depois de finalizada, as vacinas dela não podem ser apagadas: o `DELETE /vaccines/:id` responde 409 (`VACCINE_IN_FINISHED_VISIT`).
 
 Exemplo de corpo do `POST /patients/:patientId/visits` (todos os campos são opcionais; sem `type`, é consulta; sem `visitedAt`, vale a hora atual):
 
