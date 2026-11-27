@@ -1,0 +1,84 @@
+# CI do back. Roda em todo PR para a staging ou para a main.
+# PR para a staging: se tudo passar, o merge é automático (job "automerge").
+# PR da staging para a main: o CI roda, e o Lucas faz o merge depois de testar.
+name: CI
+
+on:
+  pull_request:
+    branches: [staging, main]
+  push:
+    branches: [staging, main]
+
+permissions:
+  contents: read
+
+# Um push novo no mesmo PR cancela o CI antigo
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # O Postgres dos testes de integração. Eles criam o banco vetinfo_test sozinhos.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: vetinfo
+          POSTGRES_PASSWORD: vetinfo
+          POSTGRES_DB: vetinfo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vetinfo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Valores só de teste, sem nenhum segredo de verdade
+    env:
+      DATABASE_URL: postgresql://vetinfo:vetinfo@localhost:5432/vetinfo?schema=public
+      BETTER_AUTH_SECRET: ci-only-secret-not-used-anywhere-else
+      BETTER_AUTH_URL: http://localhost:3334
+      BETTER_AUTH_TRUSTED_ORIGINS: http://localhost:5173
+
+    steps:
+      - uses: actions/checkout@v4
+      # A versão do pnpm vem do "packageManager" do package.json
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma generate
+      - run: pnpm format:check
+      - run: pnpm typeCheck
+      - run: pnpm test
+      - run: pnpm test:integration
+      - run: pnpm build
+
+  automerge:
+    name: Auto-merge to staging
+    needs: check
+    # Só PR para a staging, e só de branch deste repo (PR de fork nunca entra sozinho)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.base_ref == 'staging' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - run: gh pr merge "$PR" --merge --repo "$REPO"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
